@@ -1,0 +1,64 @@
+# Build and Output directories
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.pdb
+*.appx
+*.vsix
+*.nupkg
+*.snupkg
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and Cache
+*.log
+*.cache
+*.vs/
+.vscode/
+.idea/
+node_modules/
+
+# Configuration and Secrets
+appsettings*.json
+secrets.json
+
+# Package Management
+*.nuget/
+packages/
+*.nupkg
+
+# Debugging and Testing
+TestResults/
+*.coverage
+*.csproj.user
+*.db
+*.sqlite
+
+# Publish Outputs
+publish/
+wwwroot/dist/
+wwwroot/node_modules/
+
+# Rider and JetBrains
+.idea/
+*.sln.iml
+
+# Resharper and Rider
+*.DotSettings.user
+_ReSharper.Caches/
+
+# Visual Studio specific
+*.suo
+*.vsp
+*.sln*
+*.vssscc
+*.vspscc
+
+# Other temporary files
+~$*
