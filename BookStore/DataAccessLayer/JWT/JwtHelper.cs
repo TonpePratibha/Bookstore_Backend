@@ -28,7 +28,7 @@ namespace DataAccessLayer.JWT
             _expiryMinutes = int.Parse(configuration["JwtSettings:ExpiryMinutes"]);
         }
 
-        public string GenerateToken(User user)
+   /*     public string GenerateToken(User user)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -54,9 +54,34 @@ namespace DataAccessLayer.JWT
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        */
 
+     
+            public string GenerateToken(string email, string role, int id)
+            {
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+                var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+                var claims = new[]
+                {
+            new Claim(ClaimTypes.Name, email),
+            new Claim(ClaimTypes.Role, role),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("userId", id.ToString())
+        };
+
+                var token = new JwtSecurityToken(
+                    issuer: _issuer,
+                    audience: _audience,
+                    claims: claims,
+                    expires: DateTime.UtcNow.AddMinutes(_expiryMinutes),
+                    signingCredentials: credentials
+                );
+
+                return new JwtSecurityTokenHandler().WriteToken(token);
+            }
+        }
 
 
     }
-}
+

@@ -31,5 +31,15 @@ namespace BuisnessLayer.Service
         }
 
 
+        public string ValidateAdmin(AdminLogin adminLoginModel) {
+
+            var token=_adminRepository.ValidateAdmin(adminLoginModel);
+            if (token == null)
+            {
+                return "token is null";
+            }
+            return token;
+        }
+
     }
 }

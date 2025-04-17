@@ -31,5 +31,31 @@ namespace BookStore.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] AdminLogin adminLoginModel) {
+
+
+            try { 
+
+                   var token = _adminService.ValidateAdmin(adminLoginModel);
+
+
+                
+                    if (token == null)
+                    {
+                        return Unauthorized(new { Error = "unauthorized invalid email or password" });
+                    }
+                    return Ok(new { Token = token });
+
+                
+            }
+            catch (Exception ex) {
+                return BadRequest(new { Error = ex.Message });
+            
+            }
+
+        }
     }
 }

@@ -11,5 +11,6 @@ namespace BuisnessLayer.Interface
     {
         public void RegisterUser(UserModel userModel);
         public string ValidateUser(UserLogin userLoginModel);
+        
     }
 }

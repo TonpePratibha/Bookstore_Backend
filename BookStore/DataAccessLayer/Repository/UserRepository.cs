@@ -72,7 +72,7 @@ namespace DataAccessLayer.Repository
             }
 
            
-            return _jwtHelper.GenerateToken(user);
+            return _jwtHelper.GenerateToken(user.Email,user.Role,user.Id);
         }
 
 
