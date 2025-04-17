@@ -51,5 +51,11 @@ namespace BuisnessLayer.Service
             return _userRepository.getUserById(id);
 
         }
+
+        public void Deleteuser(int id) { 
+           _userRepository.DeleteUser(id);
+
+        }
+
     }
 }

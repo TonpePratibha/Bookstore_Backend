@@ -45,5 +45,10 @@ namespace BuisnessLayer.Service
 
         }
 
+        public void DeleteAdmin(int id) { 
+         _adminRepository.DeleteAdmin(id);
+
+        }
+
     }
 }

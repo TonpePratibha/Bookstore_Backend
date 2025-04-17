@@ -13,5 +13,6 @@ namespace DataAccessLayer.Interface
         public string ValidateAdmin(AdminLogin adminLoginModel);
 
         public AdminModel getAdinById(int id);
+        public void DeleteAdmin(int id);
     }
 }

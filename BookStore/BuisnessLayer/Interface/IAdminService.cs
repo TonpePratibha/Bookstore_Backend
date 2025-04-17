@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Modal;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,9 @@ public interface IAdminService
         public string ValidateAdmin(AdminLogin adminLoginModel);
 
         public AdminModel getAdminById(int id);
-    }
+        public void DeleteAdmin(int id);
+        
+
+
+        }
 }

@@ -77,7 +77,8 @@ namespace DataAccessLayer.Repository
         }
 
 
-        public UserModel getUserById(int id) {
+        public UserModel getUserById(int id)
+        {
 
             var user = _context.Users.FirstOrDefault(u => u.Id == id);
 
@@ -90,9 +91,21 @@ namespace DataAccessLayer.Repository
 
 
             };
+        }
+
+          public void DeleteUser(int id) {
+                var user = _context.Users.FirstOrDefault(u => u.Id == id);
+                if (user == null) {
+                return;
+
+                }
+
+                _context.Remove(user);
+            _context.SaveChanges();
 
 
-           
+               
+            }
             
             
 
@@ -100,5 +113,5 @@ namespace DataAccessLayer.Repository
 
         }
 
-    }
+    
 }

@@ -87,6 +87,25 @@ namespace BookStore.Controllers
                 return BadRequest(new { error = "unauthorized user" });
             }
 }
+
+
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteUser(int id)
+        {
+            try
+            {
+                 _userService.Deleteuser(id);
+                return Ok("user deleted");
+
+
+            }
+
+            catch (Exception ex) { 
+              return BadRequest(new { error="unauthorzed user"});
+            
+            }
+        }
         }
 
     }

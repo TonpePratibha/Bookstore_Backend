@@ -98,6 +98,22 @@ namespace DataAccessLayer.Repository
 
         }
 
+        public void DeleteAdmin(int id)
+        {
+            var admin = _context.Admin.FirstOrDefault(u => u.Id == id);
+            if (admin == null)
+            {
+                return;
+
+            }
+
+            _context.Remove(admin);
+            _context.SaveChanges();
+
+
+
+        }
+
 
     }
 

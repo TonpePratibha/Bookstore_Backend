@@ -82,5 +82,22 @@ namespace BookStore.Controllers
                  
         }
 
+        [HttpDelete("{id}")]
+        public IActionResult deleteAdmin(int id)
+        {
+            try {
+                 _adminService.DeleteAdmin(id);
+                return Ok("admin deleted");
+
+
+
+            }
+            catch (Exception ex) {
+                return BadRequest(new {ex.Message });
+            }
+        }
+
+
+
 
     } }
