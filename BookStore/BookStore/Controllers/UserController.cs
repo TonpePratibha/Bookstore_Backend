@@ -4,6 +4,7 @@ using DataAccessLayer.Entity;
 using DataAccessLayer.Interface;
 using DataAccessLayer.JWT;
 using DataAccessLayer.Modal;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ namespace BookStore.Controllers
 {
     [Route("api/user")]
     [ApiController]
+   
     public class UserController : ControllerBase
     {
 
@@ -66,5 +68,26 @@ namespace BookStore.Controllers
             }
         }
 
-    }
+        [HttpGet("{id}")]
+        [Authorize]
+        public IActionResult getUsrById(int id) {
+            try
+            {
+
+                var user = _userService.getUserById(id);
+
+                if (user == null)
+                {
+                    return NotFound(new { error = "user not found" });
+                }
+
+                return Ok(new { user });
+            }
+            catch (Exception ex) {
+                return BadRequest(new { error = "unauthorized user" });
+            }
 }
+        }
+
+    }
+

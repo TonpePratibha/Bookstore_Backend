@@ -11,5 +11,7 @@ namespace DataAccessLayer.Interface
     {
         public void RegisterAdmin(AdminModel adminModel);
         public string ValidateAdmin(AdminLogin adminLoginModel);
+
+        public AdminModel getAdinById(int id);
     }
 }

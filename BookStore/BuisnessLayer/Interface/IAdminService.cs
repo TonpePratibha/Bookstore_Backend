@@ -11,5 +11,7 @@ public interface IAdminService
     {
         public void RegisterAdmin(AdminModel adminModel);
         public string ValidateAdmin(AdminLogin adminLoginModel);
+
+        public AdminModel getAdminById(int id);
     }
 }

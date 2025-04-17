@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BuisnessLayer.Service
 {
- public class AdminService: IAdminService
+    public class AdminService : IAdminService
     {
 
 
@@ -25,20 +25,24 @@ namespace BuisnessLayer.Service
 
 
         }
-        public void RegisterAdmin(AdminModel adminModel) { 
-        
-         _adminRepository.RegisterAdmin(adminModel);  
+        public void RegisterAdmin(AdminModel adminModel) {
+
+            _adminRepository.RegisterAdmin(adminModel);
         }
 
 
         public string ValidateAdmin(AdminLogin adminLoginModel) {
 
-            var token=_adminRepository.ValidateAdmin(adminLoginModel);
+            var token = _adminRepository.ValidateAdmin(adminLoginModel);
             if (token == null)
             {
                 return "token is null";
             }
             return token;
+        }
+        public AdminModel getAdminById(int id) { 
+         return _adminRepository.getAdinById(id);
+
         }
 
     }

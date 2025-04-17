@@ -73,6 +73,31 @@ namespace DataAccessLayer.Repository
         }
 
 
+        public AdminModel getAdinById(int id) {
+
+            var admin = _context.Admin.FirstOrDefault(u => u.Id == id);
+
+
+                if (admin == null) {
+                return null;
+            }
+
+
+
+
+
+
+            return new AdminModel
+            {
+                Id = admin.Id,
+                FirstName = admin.FirstName,
+                LastName = admin.LastName,
+                Email = admin.Email
+
+            };
+
+        }
+
 
     }
 

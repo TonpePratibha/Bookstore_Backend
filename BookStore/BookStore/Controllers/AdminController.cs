@@ -1,12 +1,15 @@
 ﻿using BuisnessLayer.Interface;
 using DataAccessLayer.Modal;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography.X509Certificates;
 
 namespace BookStore.Controllers
 {
     [Route("api/admin")]
     [ApiController]
+ 
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;
@@ -14,7 +17,7 @@ namespace BookStore.Controllers
 
         public AdminController(IAdminService adminService)
         {
-            
+
             _adminService = adminService;
         }
 
@@ -37,25 +40,47 @@ namespace BookStore.Controllers
         public IActionResult Login([FromBody] AdminLogin adminLoginModel) {
 
 
-            try { 
+            try {
 
-                   var token = _adminService.ValidateAdmin(adminLoginModel);
+                var token = _adminService.ValidateAdmin(adminLoginModel);
 
 
-                
-                    if (token == null)
-                    {
-                        return Unauthorized(new { Error = "unauthorized invalid email or password" });
-                    }
-                    return Ok(new { Token = token });
 
-                
+                if (token == null)
+                {
+                    return Unauthorized(new { Error = "unauthorized invalid email or password" });
+                }
+                return Ok(new { Token = token });
+
+
             }
             catch (Exception ex) {
                 return BadRequest(new { Error = ex.Message });
-            
+
             }
 
+
+
+
+
         }
-    }
-}
+        [HttpGet("{id}")]
+        [Authorize]
+            public IActionResult getAdminById(int id) {
+            try
+            {
+                var admin = _adminService.getAdminById(id);
+                if (admin == null)
+                {
+                    return NotFound(new { error = "admin not found" });
+                }
+                return Ok(admin);
+            }
+            catch (Exception  ex) {
+                return BadRequest(new { error = "unauthorized user" });
+            }
+                 
+        }
+
+
+    } }
