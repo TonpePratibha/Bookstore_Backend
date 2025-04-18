@@ -14,5 +14,8 @@ namespace DataAccessLayer.Interface
 
         public AdminModel getAdinById(int id);
         public void DeleteAdmin(int id);
+        public void UpdateAdmin(int id, AdminModel model);
+        public void SendResetPasswordEmail(string email);
+        public string ResetPassword(string token, string newPassword);
     }
 }

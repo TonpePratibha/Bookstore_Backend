@@ -15,8 +15,11 @@ public interface IAdminService
 
         public AdminModel getAdminById(int id);
         public void DeleteAdmin(int id);
-        
+        public void SendResetPasswordEmail(string email);
+        public string ResetPassword(string token, string newPassword);
+        public void UpdateAdmin(int id, AdminModel model);
 
 
-        }
+
+    }
 }

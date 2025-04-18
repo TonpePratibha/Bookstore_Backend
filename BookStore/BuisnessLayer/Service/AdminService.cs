@@ -1,6 +1,7 @@
 ﻿using BuisnessLayer.Interface;
 using DataAccessLayer.Interface;
 using DataAccessLayer.Modal;
+using DataAccessLayer.Repository;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,20 @@ namespace BuisnessLayer.Service
         public void DeleteAdmin(int id) { 
          _adminRepository.DeleteAdmin(id);
 
+        }
+
+        public void UpdateAdmin(int id, AdminModel model)
+        {
+            _adminRepository.UpdateAdmin(id, model);
+        }
+
+        public void SendResetPasswordEmail(string email)
+        {
+            _adminRepository.SendResetPasswordEmail(email);
+        }
+        public string ResetPassword(string token, string newPassword)
+        {
+            return _adminRepository.ResetPassword(token, newPassword);
         }
 
     }

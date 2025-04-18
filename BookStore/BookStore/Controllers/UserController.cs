@@ -70,7 +70,7 @@ namespace BookStore.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        public IActionResult getUsrById(int id) {
+        public IActionResult getUserById(int id) {
             try
             {
 
@@ -84,7 +84,7 @@ namespace BookStore.Controllers
                 return Ok(new { user });
             }
             catch (Exception ex) {
-                return BadRequest(new { error = "unauthorized user" });
+                return BadRequest(new { error=ex.Message});
             }
 }
 
@@ -95,18 +95,113 @@ namespace BookStore.Controllers
         {
             try
             {
-                 _userService.Deleteuser(id);
-                return Ok("user deleted");
+                var user = _userService.getUserById(id);
+                if (user == null)
+                {
+                    return NotFound(new { error = "User not found" });
+                }
 
-
+                _userService.Deleteuser(id);
+                return Ok(new { message = "User deleted successfully" });
             }
-
-            catch (Exception ex) { 
-              return BadRequest(new { error="unauthorzed user"});
-            
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
             }
         }
+
+
+        [HttpGet("getall")]
+        public IActionResult GetAllUsers()
+        {
+            try
+            {
+                var users = _userService.GetAllUsers();
+                if (users == null || !users.Any())
+                {
+                    return NotFound(new { message = "No users found" });
+              }
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
+
+        [HttpPut("update/{id}")]
+        public IActionResult UpdateUser(int id, [FromBody] UserModel model)
+        {
+            try
+            {
+                _userService.UpdateUser(id, model);
+                return Ok(new { Message = "User updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+
+
+        [HttpPost("forgot-password")]
+        public IActionResult ForgotPassword([FromBody] ForgotPaswordModel model)
+        {
+            if (string.IsNullOrEmpty(model.Email))
+            {
+                
+                return BadRequest("Email is required.");
+            }
+
+            try
+            {
+                
+                _userService.SendResetPasswordEmail(model.Email);
+       
+
+                return Ok("Password reset email sent.");
+            }
+            catch (Exception ex)
+            {
+                
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+
+        [HttpPost("reset-password")]
+        public IActionResult ResetPassword([FromBody] ResetPasswordModel model)
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+
+            if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return BadRequest(new { Message = "Authorization header is missing or invalid" });
+            }
+
+            var token = authHeader.Replace("Bearer ", "");
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return BadRequest(new { Message = "Token is required" });
+            }
+
+            try
+            {
+                var result = _userService.ResetPassword(token, model.NewPassword);
+                return Ok(new { Message = result });
+            }
+            catch (Exception ex)
+            {
+               
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+
 
     }
+
+}
 

@@ -15,5 +15,9 @@ namespace DataAccessLayer.Interface
         public UserModel getUserById(int id);
         // public List<User> getAllUsers();
         public void DeleteUser(int id);
-        }
+        List<User> GetAllUsers();
+        public void UpdateUser(int id, UserModel model);
+        public void SendResetPasswordEmail(string email);
+        public string ResetPassword(string token, string newPassword);
+    }
 }

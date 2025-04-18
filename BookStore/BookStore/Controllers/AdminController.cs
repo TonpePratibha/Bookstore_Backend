@@ -1,4 +1,5 @@
 ﻿using BuisnessLayer.Interface;
+using BuisnessLayer.Service;
 using DataAccessLayer.Modal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -99,5 +100,75 @@ namespace BookStore.Controllers
 
 
 
+        [HttpPut("update/{id}")]
+        public IActionResult UpdateAdmin(int id, [FromBody] AdminModel model)
+        {
+            try
+            {
+                _adminService.UpdateAdmin(id, model);
+                return Ok(new { Message = "Admin updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
 
-    } }
+
+        [HttpPost("forgot-password")]
+        public IActionResult ForgotPassword([FromBody] ForgotPaswordModel model)
+        {
+            if (string.IsNullOrEmpty(model.Email))
+            {
+
+                return BadRequest("Email is required.");
+            }
+            try
+            {
+
+                _adminService.SendResetPasswordEmail(model.Email);
+
+
+                return Ok("Password reset email sent.");
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+
+        [HttpPost("reset-password")]
+        public IActionResult ResetPassword([FromBody] ResetPasswordModel model)
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+
+            if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return BadRequest(new { Message = "Authorization header is missing or invalid" });
+            }
+
+            var token = authHeader.Replace("Bearer ", "");
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return BadRequest(new { Message = "Token is required" });
+            }
+
+            try
+            {
+                var result = _adminService.ResetPassword(token, model.NewPassword);
+                return Ok(new { Message = result });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+
+
+    }
+}

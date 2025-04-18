@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.Modal;
+﻿using DataAccessLayer.Entity;
+using DataAccessLayer.Modal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,12 @@ namespace BuisnessLayer.Interface
         public UserModel getUserById(int id);
        
         public void Deleteuser(int id);
-        
+        public List<UserModel> GetAllUsers();
+        public void UpdateUser(int id, UserModel model);
+        public void SendResetPasswordEmail(string email);
+        public string ResetPassword(string token, string newPassword);
+
+
 
 
         }
