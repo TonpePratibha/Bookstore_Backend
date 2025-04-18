@@ -10,8 +10,8 @@ namespace DataAccessLayer.Interface
 {
  public interface IUserRepository
     {
-        public void RegisterUser(UserModel userModel);
-        public string ValidateUser(UserLogin userLoginModel);
+        public UserModel RegisterUser(UserModel userModel);
+        public LoginResponse ValidateUser(UserLogin userLoginModel);
         public UserModel getUserById(int id);
         // public List<User> getAllUsers();
         public void DeleteUser(int id);

@@ -9,8 +9,8 @@ namespace DataAccessLayer.Interface
 {
    public interface IAdminRepository
     {
-        public void RegisterAdmin(AdminModel adminModel);
-        public string ValidateAdmin(AdminLogin adminLoginModel);
+        public AdminModel RegisterAdmin(AdminModel adminModel);
+        public LoginResponse ValidateAdmin(AdminLogin adminLoginModel);
 
         public AdminModel getAdinById(int id);
         public void DeleteAdmin(int id);

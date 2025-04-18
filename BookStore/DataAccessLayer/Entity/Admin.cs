@@ -8,15 +8,17 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Entity
 {
- public class Admin
+    public class Admin
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required(ErrorMessage = "FirstName required")]
-        public string FirstName { get; set; }
+        [RegularExpression("^[a-zA-Z]$",ErrorMessage ="only letters are accepted")]
+        public string FirstName { get; set; }              //letters only
         [Required(ErrorMessage = "LastName required")]
+        [RegularExpression("^[a-zA-Z]$", ErrorMessage = "only letters are accepted")]
         public string LastName { get; set; }
         [Required(ErrorMessage = "Email required")]
         [EmailAddress(ErrorMessage = "Invalid Email format")]
@@ -24,6 +26,7 @@ namespace DataAccessLayer.Entity
         public string Email { get; set; }
         [Required(ErrorMessage = "Password required")]
         [MinLength(6, ErrorMessage = "min 6 characters required")]
+        
         public string Password { get; set; }
        
         public string Role { get; set; }

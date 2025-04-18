@@ -37,7 +37,7 @@ namespace DataAccessLayer.Repository
             return _context.Admin.Any(u => u.Email == email);
         }
 
-        public void RegisterAdmin(AdminModel adminModel)
+        public AdminModel RegisterAdmin(AdminModel adminModel)
         {
             if (AdminExists(adminModel.Email))
             {
@@ -57,11 +57,18 @@ namespace DataAccessLayer.Repository
             _context.Admin.Add(admin);
             _context.SaveChanges();
 
+            return new AdminModel
+            {
 
+                FirstName = adminModel.FirstName,
+                LastName = adminModel.LastName,
+                Email = adminModel.Email,
+
+            };
         }
 
 
-        public string ValidateAdmin(AdminLogin adminLoginModel) {
+        public LoginResponse ValidateAdmin(AdminLogin adminLoginModel) {
 
             var admin = _context.Admin.FirstOrDefault(u => u.Email == adminLoginModel.Email);
             if (admin == null) {
@@ -74,7 +81,16 @@ namespace DataAccessLayer.Repository
 
             }
 
-            return _jwtHelper.GenerateToken(admin.Email, admin.Role, admin.Id);
+            var token= _jwtHelper.GenerateToken(admin.Email, admin.Role, admin.Id);
+
+            return new LoginResponse
+            {
+
+                Token = token,
+                Email = admin.Email,
+                FirstName = admin.FirstName
+
+            };
         }
 
 
@@ -94,7 +110,7 @@ namespace DataAccessLayer.Repository
 
             return new AdminModel
             {
-                Id = admin.Id,
+                //Id = admin.Id,
                 FirstName = admin.FirstName,
                 LastName = admin.LastName,
                 Email = admin.Email

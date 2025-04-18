@@ -14,8 +14,11 @@ namespace DataAccessLayer.Entity
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [Required(ErrorMessage ="FirstName required")]
+        [RegularExpression("^[a-zA-Z]$", ErrorMessage = "only letters are accepted")]
         public string FirstName { get; set; }
         [Required(ErrorMessage = "LastName required")]
+        [RegularExpression("^[a-zA-Z]$", ErrorMessage = "only letters are accepted")]
+        
         public string LastName { get; set; }
         [Required(ErrorMessage = "Email required")]
         [EmailAddress(ErrorMessage ="Invalid Email format")]

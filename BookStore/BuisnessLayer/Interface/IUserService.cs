@@ -10,8 +10,8 @@ namespace BuisnessLayer.Interface
 {
    public interface IUserService
     {
-        public void RegisterUser(UserModel userModel);
-        public string ValidateUser(UserLogin userLoginModel);
+        public UserModel RegisterUser(UserModel userModel);
+        public LoginResponse ValidateUser(UserLogin userLoginModel);
 
         public UserModel getUserById(int id);
        

@@ -22,18 +22,31 @@ namespace BookStore.Controllers
             _adminService = adminService;
         }
 
-        [HttpPost("register")]
+        [HttpPost]
         public IActionResult Register([FromBody] AdminModel adminModel)
         {
-            try
+
+
+            if (!ModelState.IsValid)
             {
-                _adminService.RegisterAdmin(adminModel);
-                return Ok(new { message = "admin registered successfully." });
+                var errors = ModelState
+                    .Where(e => e.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                return BadRequest(new { message = "validation failed", errors });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+
+            var admin= _adminService.RegisterAdmin(adminModel);
+                return Ok(new { message = "admin registered successfully.", newAdmin=admin });
+            
+            
+            
+
+              
+            
         }
 
 
@@ -43,15 +56,16 @@ namespace BookStore.Controllers
 
             try {
 
-                var token = _adminService.ValidateAdmin(adminLoginModel);
+                var response = _adminService.ValidateAdmin(adminLoginModel);
 
 
 
-                if (token == null)
+                if (response == null)
                 {
                     return Unauthorized(new { Error = "unauthorized invalid email or password" });
                 }
-                return Ok(new { Token = token });
+                return Ok(new { Response=response
+                });
 
 
             }
@@ -100,7 +114,7 @@ namespace BookStore.Controllers
 
 
 
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public IActionResult UpdateAdmin(int id, [FromBody] AdminModel model)
         {
             try

@@ -39,7 +39,7 @@ namespace DataAccessLayer.Repository
             return _context.Users.Any(u => u.Email == email);
         }
 
-        public void RegisterUser(UserModel userModel)
+        public UserModel RegisterUser(UserModel userModel)
         {
             if (UserExists(userModel.Email))
             {
@@ -59,10 +59,20 @@ namespace DataAccessLayer.Repository
             _context.Users.Add(user);
             _context.SaveChanges();
 
+            return new UserModel
+            {
+
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+
+            };
+
+
 
         }
 
-        public string ValidateUser(UserLogin userLoginModel)
+        public LoginResponse ValidateUser(UserLogin userLoginModel)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == userLoginModel.Email);
             if (user == null)
@@ -78,7 +88,13 @@ namespace DataAccessLayer.Repository
             }
 
 
-            return _jwtHelper.GenerateToken(user.Email, user.Role, user.Id);
+            var token=_jwtHelper.GenerateToken(user.Email, user.Role, user.Id);
+
+            return new LoginResponse {
+                Token = token,
+                Email = user.Email,
+            FirstName = user.FirstName
+            };
         }
 
 
@@ -89,7 +105,7 @@ namespace DataAccessLayer.Repository
 
             return new UserModel
             {
-                Id = user.Id,
+                //Id = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,

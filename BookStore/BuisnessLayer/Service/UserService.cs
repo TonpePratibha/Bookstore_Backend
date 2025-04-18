@@ -23,28 +23,28 @@ namespace BuisnessLayer.Service
 
         }
 
-        public void RegisterUser(UserModel userModel)
+        public UserModel RegisterUser(UserModel userModel)
         {
-            _userRepository.RegisterUser(userModel);
+          return  _userRepository.RegisterUser(userModel);
 
         }
 
-        public string ValidateUser(UserLogin userLoginModel)
+        public LoginResponse ValidateUser(UserLogin userLoginModel)
         {
 
-            var token = _userRepository.ValidateUser(userLoginModel);
+            var response = _userRepository.ValidateUser(userLoginModel);
 
-            if (token == null)
+            if (response == null)
             {
-                return "token s nulll";
+                return null;
             }
-            return token;
-
-           
+            return response;
 
 
 
-        }
+
+
+        } 
 
         public UserModel getUserById(int id)
         {
@@ -52,24 +52,25 @@ namespace BuisnessLayer.Service
 
         }
 
-        public void Deleteuser(int id) { 
-           _userRepository.DeleteUser(id);
+        public void Deleteuser(int id)
+        {
+            _userRepository.DeleteUser(id);
 
         }
 
         public List<UserModel> GetAllUsers()
         {
-          
-                var users = _userRepository.GetAllUsers();
 
-                return users.Select(u => new UserModel
-                {
-                    Id = u.Id,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email
-                }).ToList();
-            }
+            var users = _userRepository.GetAllUsers();
+
+            return users.Select(u => new UserModel
+            {
+               // Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email
+            }).ToList();
+        }
 
 
         public void UpdateUser(int id, UserModel model)

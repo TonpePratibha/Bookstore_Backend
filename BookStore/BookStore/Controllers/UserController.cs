@@ -29,13 +29,14 @@ namespace BookStore.Controllers
             _userService = userService;
         }
 
-        [HttpPost("register")]
+        [HttpPost]
         public IActionResult Register([FromBody] UserModel userModel)
         {
             try
             {
-                _userService.RegisterUser(userModel);
-                return Ok(new { message = "User registered successfully." });
+               var newuser = _userService.RegisterUser(userModel);
+                return Ok( new { message = "User registered successfully." , user=newuser });
+
             }
             catch (Exception ex)
             {
@@ -50,16 +51,16 @@ namespace BookStore.Controllers
         {
             try
             {
-                var token = _userService.ValidateUser(userLoginModel);
+                var response = _userService.ValidateUser(userLoginModel);
 
-                if (token == null)
+                if (response == null)
                 {
                     
                     return Unauthorized(new { Error = "Unauthorized: Invalid email or password." });
                 }
 
                
-                return Ok(new { Token = token });
+                return Ok(new { response });
             }
             catch (Exception ex)
             {
@@ -111,7 +112,7 @@ namespace BookStore.Controllers
         }
 
 
-        [HttpGet("getall")]
+        [HttpGet]
         public IActionResult GetAllUsers()
         {
             try
@@ -129,7 +130,7 @@ namespace BookStore.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public IActionResult UpdateUser(int id, [FromBody] UserModel model)
         {
             try

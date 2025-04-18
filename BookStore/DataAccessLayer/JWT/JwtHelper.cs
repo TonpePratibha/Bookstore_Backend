@@ -28,33 +28,7 @@ namespace DataAccessLayer.JWT
             _expiryMinutes = int.Parse(configuration["JwtSettings:ExpiryMinutes"]);
         }
 
-        /*     public string GenerateToken(User user)
-             {
-                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
-                 var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-                 var claims = new[]
-                 {
-                                 new Claim(ClaimTypes.Name, user.Email),
-                               //  new Claim("UserId", user.Id.ToString()),
-                                 new Claim(ClaimTypes.Role, "User"),
-                                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                                 new Claim("userId", user.Id.ToString())
-                             };
-
-
-                 var token = new JwtSecurityToken(
-                     issuer: _issuer,
-                     audience: _audience,
-                     claims: claims,
-                     expires: DateTime.UtcNow.AddMinutes(_expiryMinutes),
-                     signingCredentials: credentials
-                 );
-
-                 return new JwtSecurityTokenHandler().WriteToken(token);
-             }
-
-             */
+      
 
 
         public string GenerateToken(string email, string role, int id)
@@ -82,28 +56,6 @@ namespace DataAccessLayer.JWT
         }
 
 
-        /*    public string GenerateResetToken(User user)
-            {
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
-                var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-                var claims = new[]
-                {
-                    new Claim("userId", user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
-
-                var token = new JwtSecurityToken(
-                    issuer: _issuer,
-                    audience: _audience,
-                    claims: claims,
-                    expires: DateTime.UtcNow.AddMinutes(_expiryMinutes),
-                    signingCredentials: credentials
-                );
-
-                return new JwtSecurityTokenHandler().WriteToken(token);
-            }
-        */
 
 
         public string GenerateResetToken(int id, string role)

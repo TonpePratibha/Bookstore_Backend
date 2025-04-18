@@ -26,20 +26,20 @@ namespace BuisnessLayer.Service
 
 
         }
-        public void RegisterAdmin(AdminModel adminModel) {
+        public AdminModel RegisterAdmin(AdminModel adminModel) {
 
-            _adminRepository.RegisterAdmin(adminModel);
+            return _adminRepository.RegisterAdmin(adminModel);
         }
 
 
-        public string ValidateAdmin(AdminLogin adminLoginModel) {
+        public LoginResponse ValidateAdmin(AdminLogin adminLoginModel) {
 
-            var token = _adminRepository.ValidateAdmin(adminLoginModel);
-            if (token == null)
+            var response = _adminRepository.ValidateAdmin(adminLoginModel);
+            if (response == null)
             {
-                return "token is null";
+                return null;
             }
-            return token;
+            return response;
         }
         public AdminModel getAdminById(int id) { 
          return _adminRepository.getAdinById(id);
