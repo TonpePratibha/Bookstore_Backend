@@ -88,6 +88,17 @@ namespace BuisnessLayer.Service
         }
 
 
+        public RefreshLoginResponse AcesstokenLogin(UserLogin userLoginModel) { 
+        
+        return _userRepository.AcesstokenLogin(userLoginModel);
+
+        }
+
+        public RefreshLoginResponse RefreshAccessToken(string refreshToken) { 
+        
+        return _userRepository.RefreshAccessToken(refreshToken);
+        }
+
     }
 }
 

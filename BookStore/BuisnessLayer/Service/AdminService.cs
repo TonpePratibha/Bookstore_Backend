@@ -65,5 +65,12 @@ namespace BuisnessLayer.Service
             return _adminRepository.ResetPassword(token, newPassword);
         }
 
+        public RefreshLoginResponse AcesstokenLogin(AdminLogin adminLoginModel) { 
+        return _adminRepository.AcesstokenLogin(adminLoginModel);
+        }
+        public RefreshLoginResponse RefreshAccessToken(string refreshToken) { 
+        return _adminRepository.RefreshAccessToken(refreshToken);
+        }
+
     }
 }

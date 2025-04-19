@@ -16,7 +16,13 @@ namespace DataAccessLayer.DataContext
 
              public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admin{ get; set; }
+        public DbSet<RolebasedRefreshToken> RoleBasedRefreshTokens { get; set; }
 
-    
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<RolebasedRefreshToken>().ToTable("RoleBasedRefreshTokens");
+        }
+
+
     }
 }

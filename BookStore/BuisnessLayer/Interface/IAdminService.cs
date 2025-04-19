@@ -18,6 +18,8 @@ public interface IAdminService
         public void SendResetPasswordEmail(string email);
         public string ResetPassword(string token, string newPassword);
         public void UpdateAdmin(int id, AdminModel model);
+        public RefreshLoginResponse AcesstokenLogin(AdminLogin adminLoginModel);
+        public RefreshLoginResponse RefreshAccessToken(string refreshToken);
 
 
 

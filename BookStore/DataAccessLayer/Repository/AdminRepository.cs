@@ -220,7 +220,73 @@ namespace DataAccessLayer.Repository
         return "Password reset successful";
     }
 
-}  
+
+
+        public RefreshLoginResponse AcesstokenLogin(AdminLogin adminLoginModel)
+        {
+            var admin = _context.Admin.FirstOrDefault(u => u.Email == adminLoginModel.Email);
+            if (admin == null) return null;
+
+            var result = _passwordHasher.VerifyHashedPassword(admin, admin.Password, adminLoginModel.Password);
+            if (result != PasswordVerificationResult.Success) return null;
+
+            // Generate tokens
+            var accessToken = _jwtHelper.GenerateToken(admin.Email, admin.Role, admin.Id);
+            var refreshToken = Guid.NewGuid().ToString();
+
+            // Save refresh token in the database for later validation
+            var tokenEntry = new RolebasedRefreshToken
+            {
+                EntityId = admin.Id,
+                Role = admin.Role,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                AccessTokenExpiry = DateTime.UtcNow.AddMinutes(15),
+                RefreshTokenExpiry = DateTime.UtcNow.AddDays(7)
+            };
+
+            _context.RoleBasedRefreshTokens.Add(tokenEntry);
+            _context.SaveChanges();
+
+            return new RefreshLoginResponse
+            {
+                Token = accessToken,
+                RefreshToken = refreshToken,
+                Email = admin.Email,
+                FirstName = admin.FirstName
+            };
+        }
+
+
+
+        public RefreshLoginResponse RefreshAccessToken(string refreshToken)
+        {
+            var token = _context.RoleBasedRefreshTokens.FirstOrDefault(t =>
+                t.RefreshToken == refreshToken && t.RefreshTokenExpiry > DateTime.UtcNow);
+
+            if (token == null) return null;
+
+            // Get the user from your user table (adjust based on your schema)
+            var admin = _context.Admin.FirstOrDefault(u => u.Id == token.EntityId);
+            if (admin == null) return null;  // If user is not found, return null.
+
+            // Generate new access token
+            var newAccessToken = _jwtHelper.GenerateToken(token.Role, admin.Email, admin.Id); // Assuming the role and user id are passed here
+            token.AccessToken = newAccessToken;
+            token.AccessTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+            _context.SaveChanges();
+
+            return new RefreshLoginResponse
+            {
+                Token = newAccessToken,
+                RefreshToken = token.RefreshToken,
+                Email = admin.Email,  // Ensure this is the actual user's email
+                FirstName = admin.FirstName // Ensure this is the actual user's first name
+            };
+        }
+
+
+    }
 }
 
 

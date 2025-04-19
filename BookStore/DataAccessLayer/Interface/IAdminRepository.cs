@@ -17,5 +17,7 @@ namespace DataAccessLayer.Interface
         public void UpdateAdmin(int id, AdminModel model);
         public void SendResetPasswordEmail(string email);
         public string ResetPassword(string token, string newPassword);
+        public RefreshLoginResponse AcesstokenLogin(AdminLogin adminLoginModel);
+        public RefreshLoginResponse RefreshAccessToken(string refreshToken);
     }
 }

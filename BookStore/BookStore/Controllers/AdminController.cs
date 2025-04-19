@@ -183,6 +183,21 @@ namespace BookStore.Controllers
         }
 
 
+        [HttpPost("accesslogin")]
+        public IActionResult AccessLogin(AdminLogin login)
+        {
+            var result = _adminService.AcesstokenLogin(login);
+            if (result == null) return Unauthorized("Invalid credentials.");
+            return Ok(result); // Returns the JWT access and refresh tokens
+        }
+
+        [HttpPost("refresh")]
+        public IActionResult Refresh(RefreshRequest request)
+        {
+            var result = _adminService.RefreshAccessToken(request.RefreshToken);
+            if (result == null) return Unauthorized("Invalid or expired refresh token.");
+            return Ok(result); // Returns the new access token and existing refresh token
+        }
 
     }
 }

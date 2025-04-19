@@ -38,8 +38,8 @@ namespace DataAccessLayer.JWT
 
             var claims = new[]
             {
-            new Claim(ClaimTypes.Name, email),
-            new Claim(ClaimTypes.Role, role),
+            new Claim("email", email),
+            new Claim("role", role),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("userId", id.ToString())
         };
@@ -101,6 +101,14 @@ namespace DataAccessLayer.JWT
 
             throw new InvalidOperationException("Invalid User ID format in token.");
         }
+
+
+
+
+
+
+
+
     }
 
 }
