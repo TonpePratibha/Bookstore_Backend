@@ -106,7 +106,7 @@ namespace DataAccessLayer.Repository
             }
         }
 
-        public UserModel getUserById(int id)
+        public UserModel GetUserById(int id)
         {
             try
             {

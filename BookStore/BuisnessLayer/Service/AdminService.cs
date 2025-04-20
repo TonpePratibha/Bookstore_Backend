@@ -41,8 +41,8 @@ namespace BuisnessLayer.Service
             }
             return response;
         }
-        public AdminModel getAdminById(int id) { 
-         return _adminRepository.getAdinById(id);
+        public AdminModel GetAdminById(int id) { 
+         return _adminRepository.GetAdminById(id);
 
         }
 
@@ -65,8 +65,8 @@ namespace BuisnessLayer.Service
             return _adminRepository.ResetPassword(token, newPassword);
         }
 
-        public RefreshLoginResponse AcesstokenLogin(AdminLogin adminLoginModel) { 
-        return _adminRepository.AcesstokenLogin(adminLoginModel);
+        public RefreshLoginResponse AccesstokenLogin(AdminLogin adminLoginModel) { 
+        return _adminRepository.AccesstokenLogin(adminLoginModel);
         }
         public RefreshLoginResponse RefreshAccessToken(string refreshToken) { 
         return _adminRepository.RefreshAccessToken(refreshToken);

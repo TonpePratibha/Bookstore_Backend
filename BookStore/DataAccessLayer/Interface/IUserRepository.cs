@@ -12,7 +12,7 @@ namespace DataAccessLayer.Interface
     {
         public UserModel RegisterUser(UserModel userModel);
         public LoginResponse ValidateUser(UserLogin userLoginModel);
-        public UserModel getUserById(int id);
+        public UserModel GetUserById(int id);
         // public List<User> getAllUsers();
         public void DeleteUser(int id);
         List<User> GetAllUsers();

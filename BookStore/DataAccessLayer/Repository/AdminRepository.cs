@@ -111,7 +111,7 @@ namespace DataAccessLayer.Repository
         }
       
 
-        public AdminModel getAdinById(int id)
+        public AdminModel GetAdminById(int id)
         {
             try
             {
@@ -250,7 +250,7 @@ namespace DataAccessLayer.Repository
 
        
 
-        public RefreshLoginResponse AcesstokenLogin(AdminLogin adminLoginModel)
+        public RefreshLoginResponse AccesstokenLogin(AdminLogin adminLoginModel)
         {
             try
             {

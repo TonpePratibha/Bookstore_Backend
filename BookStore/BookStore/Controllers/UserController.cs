@@ -24,7 +24,7 @@ namespace BookStore.Controllers
 
 
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService)   // camalCase fro parameters
         {
             _userService = userService;
         }
@@ -45,8 +45,8 @@ namespace BookStore.Controllers
 
                     return BadRequest(new { message = "Validation failed", errors });
                 }
-                var newuser = _userService.RegisterUser(userModel);
-                return Ok( new { message = "User registered successfully." , user=newuser });
+                var newUser = _userService.RegisterUser(userModel);          //camalcase for variable
+                return Ok( new { message = "User registered successfully." , user=newUser });  
 
             }
             catch (Exception ex)
@@ -82,11 +82,11 @@ namespace BookStore.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        public IActionResult getUserById(int id) {
+        public IActionResult GetUserById(int id) {     //pascalCase fro methodname
             try
             {
 
-                var user = _userService.getUserById(id);
+                var user = _userService.GetUserById(id);
 
                 if (user == null)
                 {
@@ -107,7 +107,7 @@ namespace BookStore.Controllers
         {
             try
             {
-                var user = _userService.getUserById(id);
+                var user = _userService.GetUserById(id);
                 if (user == null)
                 {
                     return NotFound(new { error = "User not found" });

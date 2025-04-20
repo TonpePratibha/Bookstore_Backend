@@ -84,10 +84,10 @@ namespace BookStore.Controllers
         }
         [HttpGet("{id}")]
         [Authorize]
-            public IActionResult getAdminById(int id) {
+            public IActionResult GetAdminById(int id) {
             try
             {
-                var admin = _adminService.getAdminById(id);
+                var admin = _adminService.GetAdminById(id);
                 if (admin == null)
                 {
                     return NotFound(new { error = "admin not found" });
@@ -192,7 +192,7 @@ namespace BookStore.Controllers
         {
             try
             {
-                var result = _adminService.AcesstokenLogin(login);
+                var result = _adminService.AccesstokenLogin(login);
                 if (result == null) return Unauthorized("Invalid credentials.");
                 return Ok(result); 
             }

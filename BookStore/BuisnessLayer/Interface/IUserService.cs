@@ -13,7 +13,7 @@ namespace BuisnessLayer.Interface
         public UserModel RegisterUser(UserModel userModel);
         public LoginResponse ValidateUser(UserLogin userLoginModel);
 
-        public UserModel getUserById(int id);
+        public UserModel GetUserById(int id);
        
         public void Deleteuser(int id);
         public List<UserModel> GetAllUsers();

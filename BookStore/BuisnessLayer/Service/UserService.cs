@@ -46,9 +46,9 @@ namespace BuisnessLayer.Service
 
         } 
 
-        public UserModel getUserById(int id)
+        public UserModel GetUserById(int id)
         {
-            return _userRepository.getUserById(id);
+            return _userRepository.GetUserById(id);
 
         }
 

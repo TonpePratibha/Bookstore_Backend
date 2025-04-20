@@ -13,12 +13,12 @@ public interface IAdminService
         public AdminModel RegisterAdmin(AdminModel adminModel);
         public LoginResponse ValidateAdmin(AdminLogin adminLoginModel);
 
-        public AdminModel getAdminById(int id);
+        public AdminModel GetAdminById(int id);
         public void DeleteAdmin(int id);
         public void SendResetPasswordEmail(string email);
         public string ResetPassword(string token, string newPassword);
         public void UpdateAdmin(int id, AdminModel model);
-        public RefreshLoginResponse AcesstokenLogin(AdminLogin adminLoginModel);
+        public RefreshLoginResponse AccesstokenLogin(AdminLogin adminLoginModel);
         public RefreshLoginResponse RefreshAccessToken(string refreshToken);
 
 
