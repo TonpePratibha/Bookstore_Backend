@@ -38,160 +38,348 @@ namespace DataAccessLayer.Repository
         {
             return _context.Users.Any(u => u.Email == email);
         }
+        /*
+                public UserModel RegisterUser(UserModel userModel)
+                {
+                    if (UserExists(userModel.Email))
+                    {
+                        throw new Exception("User already exists with this email.");
+                    }
+
+                    var user = new User
+                    {
+                        FirstName = userModel.FirstName,
+                        LastName = userModel.LastName,
+                        Email = userModel.Email,
+                        Role = "user"
+
+                    };
+
+                    user.Password = _passwordHasher.HashPassword(user, userModel.Password);
+                    _context.Users.Add(user);
+                    _context.SaveChanges();
+
+                    return new UserModel
+                    {
+
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+
+                    };
+
+
+
+                }
+
+                public LoginResponse ValidateUser(UserLogin userLoginModel)
+                {
+                    var user = _context.Users.FirstOrDefault(u => u.Email == userLoginModel.Email);
+                    if (user == null)
+                    {
+                        return null;
+                    }
+
+                    var result = _passwordHasher.VerifyHashedPassword(user, user.Password, userLoginModel.Password);
+                    if (result != PasswordVerificationResult.Success)
+                    {
+
+                        return null;
+                    }
+
+
+                    var token=_jwtHelper.GenerateToken(user.Email, user.Role, user.Id);
+
+                    return new LoginResponse {
+                        Token = token,
+                        Email = user.Email,
+                    FirstName = user.FirstName
+                    };
+                }
+
+
+                public UserModel getUserById(int id)
+                {
+
+                    var user = _context.Users.FirstOrDefault(u => u.Id == id);
+
+                    return new UserModel
+                    {
+                        //Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+
+
+                    };
+                }
+
+                  public void DeleteUser(int id) {
+                        var user = _context.Users.FirstOrDefault(u => u.Id == id);
+                        if (user == null) {
+                        return;
+
+                        }
+
+                        _context.Remove(user);
+                    _context.SaveChanges();
+
+
+
+                    }
+
+
+                public void UpdateUser(int id, UserModel model)
+                {
+                    var user = _context.Users.FirstOrDefault(u => u.Id == id);
+                    if (user == null)
+                    {
+                        throw new InvalidOperationException("User not found.");
+                    }
+
+                    user.FirstName = model.FirstName;
+                    user.LastName = model.LastName;
+                    user.Email = model.Email;
+
+                    _context.SaveChanges();
+                }
+
+
+                public List<User> GetAllUsers()
+                {
+                    return _context.Users.ToList();
+                }
+
+                public void SendResetPasswordEmail(string email)
+                {
+                    var user = _context.Users.FirstOrDefault(u => u.Email == email);
+                    if (user == null)
+                    {
+
+                        throw new InvalidOperationException("User not found.");
+                    }
+
+                    string token = _jwtHelper.GenerateResetToken(user.Id, "user");
+
+
+                    string resetLink = $"http://localhost:4200/reset/{token}";
+
+
+                    SendEmail(user.Email, "Password Reset", $"Click here to reset your password: {resetLink}");
+
+                }
+
+                public void SendEmail(string toEmail, string subject, string body)
+                {
+                    var fromEmail = _config["EmailSettings:FromEmail"];
+                    var password = _config["EmailSettings:Password"];
+                    var smtpServer = _config["EmailSettings:SmtpServer"];
+                    var port = int.Parse(_config["EmailSettings:Port"]);
+
+                    using (var smtpClient = new SmtpClient(smtpServer, port))
+                    using (var mailMessage = new MailMessage(fromEmail, toEmail, subject, body))
+                    {
+                        smtpClient.Credentials = new NetworkCredential(fromEmail, password);
+                        smtpClient.EnableSsl = true;
+
+                        mailMessage.IsBodyHtml = true;
+                        smtpClient.Send(mailMessage);
+                    }
+                }
+
+
+                */
+
 
         public UserModel RegisterUser(UserModel userModel)
         {
-            if (UserExists(userModel.Email))
+            try
             {
-                throw new Exception("User already exists with this email.");
+                if (UserExists(userModel.Email))
+                {
+                    throw new Exception("User already exists with this email.");
+                }
+
+                var user = new User
+                {
+                    FirstName = userModel.FirstName,
+                    LastName = userModel.LastName,
+                    Email = userModel.Email,
+                    Role = "user"
+                };
+
+                user.Password = _passwordHasher.HashPassword(user, userModel.Password);
+                _context.Users.Add(user);
+                _context.SaveChanges();
+
+                return new UserModel
+                {
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                };
             }
-
-            var user = new User
+            catch (Exception ex)
             {
-                FirstName = userModel.FirstName,
-                LastName = userModel.LastName,
-                Email = userModel.Email,
-                Role = "user"
-
-            };
-
-            user.Password = _passwordHasher.HashPassword(user, userModel.Password);
-            _context.Users.Add(user);
-            _context.SaveChanges();
-
-            return new UserModel
-            {
-
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-
-            };
-
-
-
+                throw new Exception($"Error registering user: {ex.Message}");
+            }
         }
 
         public LoginResponse ValidateUser(UserLogin userLoginModel)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == userLoginModel.Email);
-            if (user == null)
+            try
             {
-                return null;
-            }
+                var user = _context.Users.FirstOrDefault(u => u.Email == userLoginModel.Email);
+                if (user == null)
+                {
+                    return null;
+                }
 
-            var result = _passwordHasher.VerifyHashedPassword(user, user.Password, userLoginModel.Password);
-            if (result != PasswordVerificationResult.Success)
+                var result = _passwordHasher.VerifyHashedPassword(user, user.Password, userLoginModel.Password);
+                if (result != PasswordVerificationResult.Success)
+                {
+                    return null;
+                }
+
+                var token = _jwtHelper.GenerateToken(user.Email, user.Role, user.Id);
+
+                return new LoginResponse
+                {
+                    Token = token,
+                    Email = user.Email,
+                    FirstName = user.FirstName
+                };
+            }
+            catch (Exception ex)
             {
-
-                return null;
+                throw new Exception($"Error validating user: {ex.Message}");
             }
-
-
-            var token=_jwtHelper.GenerateToken(user.Email, user.Role, user.Id);
-
-            return new LoginResponse {
-                Token = token,
-                Email = user.Email,
-            FirstName = user.FirstName
-            };
         }
-
 
         public UserModel getUserById(int id)
         {
-
-            var user = _context.Users.FirstOrDefault(u => u.Id == id);
-
-            return new UserModel
+            try
             {
-                //Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
+                var user = _context.Users.FirstOrDefault(u => u.Id == id);
+                if (user == null) return null;
 
-
-            };
+                return new UserModel
+                {
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error fetching user by id: {ex.Message}");
+            }
         }
 
-          public void DeleteUser(int id) {
+        public void DeleteUser(int id)
+        {
+            try
+            {
                 var user = _context.Users.FirstOrDefault(u => u.Id == id);
-                if (user == null) {
-                return;
-
+                if (user == null)
+                {
+                    return;
                 }
 
                 _context.Remove(user);
-            _context.SaveChanges();
-
-
-               
+                _context.SaveChanges();
             }
-
+            catch (Exception ex)
+            {
+                throw new Exception($"Error deleting user: {ex.Message}");
+            }
+        }
 
         public void UpdateUser(int id, UserModel model)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == id);
-            if (user == null)
+            try
             {
-                throw new InvalidOperationException("User not found.");
+                var user = _context.Users.FirstOrDefault(u => u.Id == id);
+                if (user == null)
+                {
+                    throw new InvalidOperationException("User not found.");
+                }
+
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+                user.Email = model.Email;
+
+                _context.SaveChanges();
             }
-
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            user.Email = model.Email;
-
-            _context.SaveChanges();
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating user: {ex.Message}");
+            }
         }
-
 
         public List<User> GetAllUsers()
         {
-            return _context.Users.ToList();
+            try
+            {
+                return _context.Users.ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error fetching all users: {ex.Message}");
+            }
         }
 
         public void SendResetPasswordEmail(string email)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (user == null)
+            try
             {
-                
-                throw new InvalidOperationException("User not found.");
+                var user = _context.Users.FirstOrDefault(u => u.Email == email);
+                if (user == null)
+                {
+                    throw new InvalidOperationException("User not found.");
+                }
+
+                string token = _jwtHelper.GenerateResetToken(user.Id, "user");
+                string resetLink = $"http://localhost:4200/reset/{token}";
+
+                SendEmail(user.Email, "Password Reset", $"Click here to reset your password: {resetLink}");
             }
-
-            string token = _jwtHelper.GenerateResetToken(user.Id, "user");
-            /* string resetLink = $"http://localhost:4200/reset-password?token={token}";*/
-
-            string resetLink = $"http://localhost:4200/reset/{token}";
-
-
-            SendEmail(user.Email, "Password Reset", $"Click here to reset your password: {resetLink}");
-           
+            catch (Exception ex)
+            {
+                throw new Exception($"Error sending reset password email: {ex.Message}");
+            }
         }
 
         public void SendEmail(string toEmail, string subject, string body)
         {
-            var fromEmail = _config["EmailSettings:FromEmail"];
-            var password = _config["EmailSettings:Password"];
-            var smtpServer = _config["EmailSettings:SmtpServer"];
-            var port = int.Parse(_config["EmailSettings:Port"]);
-
-            using (var smtpClient = new SmtpClient(smtpServer, port))
-            using (var mailMessage = new MailMessage(fromEmail, toEmail, subject, body))
+            try
             {
-                smtpClient.Credentials = new NetworkCredential(fromEmail, password);
-                smtpClient.EnableSsl = true;
+                var fromEmail = _config["EmailSettings:FromEmail"];
+                var password = _config["EmailSettings:Password"];
+                var smtpServer = _config["EmailSettings:SmtpServer"];
+                var port = int.Parse(_config["EmailSettings:Port"]);
 
-                mailMessage.IsBodyHtml = true;
-                smtpClient.Send(mailMessage);
+                using (var smtpClient = new SmtpClient(smtpServer, port))
+                using (var mailMessage = new MailMessage(fromEmail, toEmail, subject, body))
+                {
+                    smtpClient.Credentials = new NetworkCredential(fromEmail, password);
+                    smtpClient.EnableSsl = true;
+
+                    mailMessage.IsBodyHtml = true;
+                    smtpClient.Send(mailMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error sending email: {ex.Message}");
             }
         }
 
 
 
-          
 
-            public string ResetPassword(string token, string newPassword)
+
+        public string ResetPassword(string token, string newPassword)
             {
                 int userId;
                 try
@@ -218,7 +406,7 @@ namespace DataAccessLayer.Repository
                 return "Password reset successful";
             }
 
-
+        /*
 
         public RefreshLoginResponse AcesstokenLogin(UserLogin userLoginModel)
         {
@@ -281,6 +469,80 @@ namespace DataAccessLayer.Repository
                 Email = user.Email,  // Ensure this is the actual user's email
                 FirstName = user.FirstName // Ensure this is the actual user's first name
             };
+        }
+
+        */
+
+
+        public RefreshLoginResponse AcesstokenLogin(UserLogin userLoginModel)
+        {
+            try
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Email == userLoginModel.Email);
+                if (user == null) return null;
+
+                var result = _passwordHasher.VerifyHashedPassword(user, user.Password, userLoginModel.Password);
+                if (result != PasswordVerificationResult.Success) return null;
+
+                var accessToken = _jwtHelper.GenerateToken(user.Email, user.Role, user.Id);
+                var refreshToken = Guid.NewGuid().ToString();
+
+                var tokenEntry = new RolebasedRefreshToken
+                {
+                    EntityId = user.Id,
+                    Role = user.Role,
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    AccessTokenExpiry = DateTime.UtcNow.AddMinutes(15),
+                    RefreshTokenExpiry = DateTime.UtcNow.AddDays(7)
+                };
+
+                _context.RoleBasedRefreshTokens.Add(tokenEntry);
+                _context.SaveChanges();
+
+                return new RefreshLoginResponse
+                {
+                    Token = accessToken,
+                    RefreshToken = refreshToken,
+                    Email = user.Email,
+                    FirstName = user.FirstName
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error during access token login: {ex.Message}");
+            }
+        }
+
+        public RefreshLoginResponse RefreshAccessToken(string refreshToken)
+        {
+            try
+            {
+                var token = _context.RoleBasedRefreshTokens.FirstOrDefault(t =>
+                    t.RefreshToken == refreshToken && t.RefreshTokenExpiry > DateTime.UtcNow);
+
+                if (token == null) return null;
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == token.EntityId);
+                if (user == null) return null;
+
+                var newAccessToken = _jwtHelper.GenerateToken(token.Role, user.Email, user.Id);
+                token.AccessToken = newAccessToken;
+                token.AccessTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+                _context.SaveChanges();
+
+                return new RefreshLoginResponse
+                {
+                    Token = newAccessToken,
+                    RefreshToken = token.RefreshToken,
+                    Email = user.Email,
+                    FirstName = user.FirstName
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error refreshing access token: {ex.Message}");
+            }
         }
 
 

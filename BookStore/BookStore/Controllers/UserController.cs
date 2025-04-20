@@ -199,23 +199,36 @@ namespace BookStore.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
-
-
         [HttpPost("accesslogin")]
         public IActionResult AccessLogin(UserLogin login)
         {
-            var result = _userService.AcesstokenLogin(login);
-            if (result == null) return Unauthorized("Invalid credentials.");
-            return Ok(result); // Returns the JWT access and refresh tokens
+            try
+            {
+                var result = _userService.AcesstokenLogin(login);
+                if (result == null) return Unauthorized("Invalid credentials.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred during login: {ex.Message}");
+            }
         }
 
         [HttpPost("refresh")]
         public IActionResult Refresh(RefreshRequest request)
         {
-            var result = _userService.RefreshAccessToken(request.RefreshToken);
-            if (result == null) return Unauthorized("Invalid or expired refresh token.");
-            return Ok(result); // Returns the new access token and existing refresh token
+            try
+            {
+                var result = _userService.RefreshAccessToken(request.RefreshToken);
+                if (result == null) return Unauthorized("Invalid or expired refresh token.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while refreshing token: {ex.Message}");
+            }
         }
+
 
 
     }

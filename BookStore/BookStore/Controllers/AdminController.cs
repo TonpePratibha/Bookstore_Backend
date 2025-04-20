@@ -21,33 +21,34 @@ namespace BookStore.Controllers
 
             _adminService = adminService;
         }
-
+        
         [HttpPost]
         public IActionResult Register([FromBody] AdminModel adminModel)
         {
-
-
-            if (!ModelState.IsValid)
+            try
             {
-                var errors = ModelState
-                    .Where(e => e.Value.Errors.Count > 0)
-                    .ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                    );
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(e => e.Value.Errors.Count > 0)
+                        .ToDictionary(
+                            kvp => kvp.Key,
+                            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        );
 
-                return BadRequest(new { message = "validation failed", errors });
+                    return BadRequest(new { message = "Validation failed", errors });
+                }
+
+                var admin = _adminService.RegisterAdmin(adminModel);
+                return Ok(new { message = "Admin registered successfully.", newAdmin = admin });
             }
-
-            var admin= _adminService.RegisterAdmin(adminModel);
-                return Ok(new { message = "admin registered successfully.", newAdmin=admin });
-            
-            
-            
-
-              
-            
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while processing your request.", error = ex.Message });
+            }
         }
+
+
 
 
         [HttpPost("login")]
@@ -182,22 +183,40 @@ namespace BookStore.Controllers
             }
         }
 
+       
 
         [HttpPost("accesslogin")]
         public IActionResult AccessLogin(AdminLogin login)
         {
-            var result = _adminService.AcesstokenLogin(login);
-            if (result == null) return Unauthorized("Invalid credentials.");
-            return Ok(result); // Returns the JWT access and refresh tokens
+            try
+            {
+                var result = _adminService.AcesstokenLogin(login);
+                if (result == null) return Unauthorized("Invalid credentials.");
+                return Ok(result); 
+            }
+            catch (Exception ex)
+            {
+               
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         [HttpPost("refresh")]
         public IActionResult Refresh(RefreshRequest request)
         {
-            var result = _adminService.RefreshAccessToken(request.RefreshToken);
-            if (result == null) return Unauthorized("Invalid or expired refresh token.");
-            return Ok(result); // Returns the new access token and existing refresh token
+            try
+            {
+                var result = _adminService.RefreshAccessToken(request.RefreshToken);
+                if (result == null) return Unauthorized("Invalid or expired refresh token.");
+                return Ok(result); 
+            }
+            catch (Exception ex)
+            {
+               
+                return StatusCode(500, "Internal server error");
+            }
         }
+
 
     }
 }

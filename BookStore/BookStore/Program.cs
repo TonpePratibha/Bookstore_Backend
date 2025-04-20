@@ -129,6 +129,7 @@ using DataAccessLayer.JWT;
 using DataAccessLayer.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -155,6 +156,26 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.AddScoped<JwtHelper>();
 
 builder.Services.AddControllers();
+/*
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(e => e.Value.Errors.Count > 0)
+            .ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+            );
+
+        return new BadRequestObjectResult(new
+        {
+            Message = "Validation Failed",
+            Errors = errors
+        });
+    };
+});
+*/
 
 // CORS Policy
 builder.Services.AddCors(options =>
