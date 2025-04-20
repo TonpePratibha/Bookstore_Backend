@@ -34,7 +34,18 @@ namespace BookStore.Controllers
         {
             try
             {
-               var newuser = _userService.RegisterUser(userModel);
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(e => e.Value.Errors.Count > 0)
+                        .ToDictionary(
+                            kvp => kvp.Key,
+                            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        );
+
+                    return BadRequest(new { message = "Validation failed", errors });
+                }
+                var newuser = _userService.RegisterUser(userModel);
                 return Ok( new { message = "User registered successfully." , user=newuser });
 
             }

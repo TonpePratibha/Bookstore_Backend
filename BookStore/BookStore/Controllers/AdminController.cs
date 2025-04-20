@@ -21,34 +21,36 @@ namespace BookStore.Controllers
 
             _adminService = adminService;
         }
-        
-        [HttpPost]
-        public IActionResult Register([FromBody] AdminModel adminModel)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState
-                        .Where(e => e.Value.Errors.Count > 0)
-                        .ToDictionary(
-                            kvp => kvp.Key,
-                            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                        );
+         
+          [HttpPost]
+          public IActionResult Register([FromBody] AdminModel adminModel)
+          {
+              try
+              {
+                  if (!ModelState.IsValid)
+                  {
+                      var errors = ModelState
+                          .Where(e => e.Value.Errors.Count > 0)
+                          .ToDictionary(
+                              kvp => kvp.Key,
+                              kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                          );
 
-                    return BadRequest(new { message = "Validation failed", errors });
-                }
+                      return BadRequest(new { message = "Validation failed", errors });
+                  }
 
-                var admin = _adminService.RegisterAdmin(adminModel);
-                return Ok(new { message = "Admin registered successfully.", newAdmin = admin });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while processing your request.", error = ex.Message });
-            }
-        }
+                  var admin = _adminService.RegisterAdmin(adminModel);
+                  return Ok(new { message = "Admin registered successfully.", newAdmin = admin });
+              }
+              catch (Exception ex)
+              {
+                  return StatusCode(500, new { message = "An error occurred while processing your request.", error = ex.Message });
+              }
+          }
 
+          
 
+       
 
 
         [HttpPost("login")]
