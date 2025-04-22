@@ -103,6 +103,20 @@ namespace DataAccessLayer.JWT
         }
 
 
+        public string ExtractRoleFromJwt(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(token);
+
+            var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+            if (string.IsNullOrEmpty(roleClaim))
+            {
+                throw new InvalidOperationException("Role not found in token.");
+            }
+
+            return roleClaim;
+        }
 
 
 

@@ -1,5 +1,8 @@
 ﻿using BuisnessLayer.Interface;
+using DataAccessLayer.Entity;
 using DataAccessLayer.Interface;
+using DataAccessLayer.Repository;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,19 +11,70 @@ using System.Threading.Tasks;
 
 namespace BuisnessLayer.Service
 {
-   public class BookService:IBookService
+    public class BookService : IBookService
     {
 
-        private readonly IBookRepository _repository;
+        private readonly IBookRepository _bookRepository;
 
-        public BookService(IBookRepository repository)
+        public BookService(IBookRepository bookRepository)
         {
-            _repository = repository;
+            _bookRepository = bookRepository;
         }
 
-        public string LoadBooksFromCsv()
+        public string LoadBooksFromCsv(string token)
         {
-            return _repository.LoadBooksFromCsv();
+            return _bookRepository.LoadBooksFromCsv(token);
         }
+
+
+
+        public List<Book> GetAllBooks()
+        {
+            return _bookRepository.GetAllBooks();
+        }
+
+
+        public Book GetBookById(int id)
+        {
+
+            return _bookRepository.GetBookById(id);
+
+
+        }
+
+
+        public IEnumerable<Book> SearchBooksByAuthor(string author)
+        {
+
+
+            return _bookRepository.SearchBooksByAuthor(author);
+
+        }
+
+        public IEnumerable<Book> SearchBooksByTitle(string title)
+        {
+            
+            
+                return _bookRepository.SearchBooksByTitle(title);
+            }
+
+
+        public IEnumerable<Book> GetBooksSortedByPriceAsc()
+        {
+           
+                return _bookRepository.GetBooksSortedByPriceAsc();
+           
+          
+        }
+
+        public IEnumerable<Book> GetBooksSortedByPriceDesc()
+        {
+           
+                return _bookRepository.GetBooksSortedByPriceDesc();
+            
+        }
+
+
+
     }
 }
