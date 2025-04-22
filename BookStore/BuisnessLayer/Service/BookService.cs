@@ -1,6 +1,7 @@
 ﻿using BuisnessLayer.Interface;
 using DataAccessLayer.Entity;
 using DataAccessLayer.Interface;
+using DataAccessLayer.Modal;
 using DataAccessLayer.Repository;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -31,6 +32,11 @@ namespace BuisnessLayer.Service
         public List<Book> GetAllBooks()
         {
             return _bookRepository.GetAllBooks();
+        }
+
+        public List<Book> GetAllBooksWithPage(int page, int pageSize)
+        {
+            return _bookRepository.GetAllBooksWithPage(page, pageSize);
         }
 
 
@@ -72,6 +78,23 @@ namespace BuisnessLayer.Service
            
                 return _bookRepository.GetBooksSortedByPriceDesc();
             
+        }
+
+       
+       
+        public Book AddBook(BookModel model,  string token)
+        {
+            return _bookRepository.AddBook(model, token);
+        }
+
+        public Book UpdateBook(int id, BookModel model, string token)
+        {
+            return _bookRepository.UpdateBook(id, model, token);
+        }
+
+        public string DeleteBook(int id, string token)
+        {
+            return _bookRepository.DeleteBook(id, token);
         }
 
 

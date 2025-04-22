@@ -108,7 +108,8 @@ namespace DataAccessLayer.JWT
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
 
-            var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            // Use the actual key "role" you used when generating the token
+            var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
 
             if (string.IsNullOrEmpty(roleClaim))
             {
@@ -117,6 +118,7 @@ namespace DataAccessLayer.JWT
 
             return roleClaim;
         }
+
 
 
 

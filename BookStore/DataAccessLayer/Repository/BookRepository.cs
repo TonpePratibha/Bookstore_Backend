@@ -3,6 +3,7 @@ using DataAccessLayer.DataContext;
 using DataAccessLayer.Entity;
 using DataAccessLayer.Interface;
 using DataAccessLayer.JWT;
+using DataAccessLayer.Modal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -77,6 +78,96 @@ namespace DataAccessLayer.Repository
             }
         }
 
+
+        public Book AddBook(BookModel model, string token)
+        {
+            try
+            {
+                var role = _jwtHelper.ExtractRoleFromJwt(token);
+                var adminUserId = _jwtHelper.ExtractUserIdFromJwt(token);
+
+                if (role != "Admin")
+                    throw new UnauthorizedAccessException("Only admin can add books.");
+
+                var book = new Book
+                {
+                    BookName = model.BookName,
+                    Author = model.Author,
+                    Description = model.Description,
+                    Price = model.Price,
+                    DiscountPrice = model.DiscountPrice,
+                    Quantity = model.Quantity,
+                    BookImage = model.BookImage,
+                    AdminUserId = adminUserId.ToString(),
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
+                _context.Books.Add(book);
+                _context.SaveChanges();
+                return book;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while adding book: {ex.Message}");
+            }
+        }
+
+        public Book UpdateBook(int id, BookModel model, string token)
+        {
+            try
+            {
+                var role = _jwtHelper.ExtractRoleFromJwt(token);
+                if (role != "Admin")
+                    throw new UnauthorizedAccessException("Only admin can update books.");
+
+                var book = _context.Books.FirstOrDefault(b => b.Id == id);
+                if (book == null)
+                    throw new Exception("Book not found.");
+
+                book.BookName = model.BookName;
+                book.Author = model.Author;
+                book.Description = model.Description;
+                book.Price = model.Price;
+                book.DiscountPrice = model.DiscountPrice;
+                book.Quantity = model.Quantity;
+                book.BookImage = model.BookImage;
+                book.UpdatedAt = DateTime.Now;
+
+                _context.SaveChanges();
+                return book;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while updating book: {ex.Message}");
+            }
+        }
+
+        public string DeleteBook(int id, string token)
+        {
+            try
+            {
+                var role = _jwtHelper.ExtractRoleFromJwt(token);
+                if (role != "Admin")
+                    throw new UnauthorizedAccessException("Only admin can delete books.");
+
+                var book = _context.Books.FirstOrDefault(b => b.Id == id);
+                if (book == null)
+                    throw new Exception("Book not found.");
+
+                _context.Books.Remove(book);
+                _context.SaveChanges();
+                return "Book deleted successfully";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while deleting book: {ex.Message}");
+            }
+
+        }
+
+
+
             public List<Book>GetAllBooks()
           {
             try
@@ -86,6 +177,22 @@ namespace DataAccessLayer.Repository
             catch (Exception ex)
             {
                 return new List<Book>();
+            }
+        }
+
+        public List<Book> GetAllBooksWithPage(int page, int pageSize)
+        {
+            try
+            {
+                return _context.Books
+                               .OrderBy(b => b.Id)
+                               .Skip((page - 1) * pageSize)
+                               .Take(pageSize)
+                               .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while fetching paginated books: {ex.Message}");
             }
         }
 
@@ -156,6 +263,7 @@ namespace DataAccessLayer.Repository
                 throw new Exception("Repository error during descending sort.", ex);
             }
         }
+
 
 
 

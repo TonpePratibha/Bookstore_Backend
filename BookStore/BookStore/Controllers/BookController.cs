@@ -1,8 +1,11 @@
 ﻿using BuisnessLayer.Interface;
 using BuisnessLayer.Service;
+using DataAccessLayer.Entity;
+using DataAccessLayer.Modal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Controllers
 {
@@ -24,6 +27,7 @@ namespace BookStore.Controllers
 
 
         [HttpPost("loadfromcsv")]
+        [Authorize]
         public IActionResult LoadBooksFromCsv()
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -34,6 +38,65 @@ namespace BookStore.Controllers
             return Ok(result);
         }
 
+        [HttpPost]
+        [Authorize]
+        public IActionResult AddBook([FromBody] BookModel model)
+        {
+            try
+            {
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var result = _bookService.AddBook(model, token);
+                return Ok(new { status = true, message = "Book added", data = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { status = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize]
+        public IActionResult UpdateBook(int id, [FromBody] BookModel model)
+        {
+            try
+            {
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var result = _bookService.UpdateBook(id, model, token);
+                return Ok(new { status = true, message = "Book updated", data = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { status = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize]
+        public IActionResult DeleteBook(int id)
+        {
+            try
+            {
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var result = _bookService.DeleteBook(id, token);
+                return Ok(new { status = true, message = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { status = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = ex.Message });
+            }
+        }
 
 
 
@@ -50,6 +113,21 @@ namespace BookStore.Controllers
                 return StatusCode(500, $"Error retrieving books: {ex.Message}");
             }
         }
+
+        [HttpGet("pages")]
+        public IActionResult GetAllBooksWithPage(int page = 1, int pageSize = 6)
+        {
+            try
+            {
+                var books = _bookService.GetAllBooksWithPage(page, pageSize);
+                return Ok(books);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = false, message = $"Error retrieving books: {ex.Message}" });
+            }
+        }
+
 
 
 
