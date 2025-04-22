@@ -34,7 +34,7 @@ namespace BookStore.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
+               /* if (!ModelState.IsValid)
                 {
                     var errors = ModelState
                         .Where(e => e.Value.Errors.Count > 0)
@@ -44,7 +44,8 @@ namespace BookStore.Controllers
                         );
 
                     return BadRequest(new { message = "Validation failed", errors });
-                }
+                } 
+               */
                 var newUser = _userService.RegisterUser(userModel);          //camalcase for variable
                 return Ok( new { message = "User registered successfully." , user=newUser });  
 

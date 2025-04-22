@@ -27,7 +27,7 @@ namespace BookStore.Controllers
           {
               try
               {
-                  if (!ModelState.IsValid)
+                  /*if (!ModelState.IsValid)
                   {
                       var errors = ModelState
                           .Where(e => e.Value.Errors.Count > 0)
@@ -38,7 +38,8 @@ namespace BookStore.Controllers
 
                       return BadRequest(new { message = "Validation failed", errors });
                   }
-
+                  */
+                  
                   var admin = _adminService.RegisterAdmin(adminModel);
                   return Ok(new { message = "Admin registered successfully.", newAdmin = admin });
               }
