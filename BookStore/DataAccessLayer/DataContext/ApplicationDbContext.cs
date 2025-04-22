@@ -16,6 +16,7 @@ namespace DataAccessLayer.DataContext
 
              public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admin{ get; set; }
+        public DbSet<Book> Books { get; set; }
         public DbSet<RolebasedRefreshToken> RoleBasedRefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
