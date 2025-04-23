@@ -34,11 +34,14 @@ namespace BuisnessLayer.Service
             return _bookRepository.GetAllBooks();
         }
 
-        public List<Book> GetAllBooksWithPage(int page, int pageSize)
+        public List<Book> GetAllBooksWithPage(int page)
         {
-            return _bookRepository.GetAllBooksWithPage(page, pageSize);
-        }
+            return _bookRepository.GetAllBooksWithPage(page);
 
+        }
+        public Book GetMostRecentBook() { 
+         return _bookRepository.GetMostRecentBook();    
+        }
 
         public Book GetBookById(int id)
         {

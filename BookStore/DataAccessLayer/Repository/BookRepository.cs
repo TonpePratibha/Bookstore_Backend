@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using DataAccessLayer.CustomException;
 using DataAccessLayer.DataContext;
 using DataAccessLayer.Entity;
 using DataAccessLayer.Interface;
@@ -180,21 +181,45 @@ namespace DataAccessLayer.Repository
             }
         }
 
-        public List<Book> GetAllBooksWithPage(int page, int pageSize)
+        public List<Book> GetAllBooksWithPage(int page)
         {
             try
             {
+                int pageSize = 6;
+                int totalBooks = _context.Books.Count();
+                int totalPages = (int)Math.Ceiling((double)totalBooks / pageSize);
+
+                if (page < 1 || page > totalPages)
+                {
+                    throw new PageNotFoundException($"Page {page} not found. Total pages: {totalPages}");
+                }
+
                 return _context.Books
                                .OrderBy(b => b.Id)
                                .Skip((page - 1) * pageSize)
                                .Take(pageSize)
                                .ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception($"Error while fetching paginated books: {ex.Message}");
+                throw;
             }
         }
+
+        public Book GetMostRecentBook()
+        {
+            try
+            {
+                return _context.Books
+                               .OrderByDescending(b => b.CreatedAt)
+                               .FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error retrieving the most recent book: " + ex.Message);
+            }
+        }
+
 
         public Book GetBookById(int id)
 {

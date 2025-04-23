@@ -1,5 +1,6 @@
 ﻿using BuisnessLayer.Interface;
 using BuisnessLayer.Service;
+using DataAccessLayer.CustomException;
 using DataAccessLayer.Entity;
 using DataAccessLayer.Modal;
 using Microsoft.AspNetCore.Authorization;
@@ -38,19 +39,47 @@ namespace BookStore.Controllers
             return Ok(result);
         }
 
+        /*  [HttpPost]
+          [Authorize]
+          public IActionResult AddBook([FromBody] BookModel model)
+          {
+              try
+              {
+                  string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                  var result = _bookService.AddBook(model, token);
+                  return Ok(new { status = true, message = "Book added", data = result });
+              }
+              catch (UnauthorizedAccessException ex)
+              {
+                  return StatusCode(403, new { status = false, message = "token not found user is not unauthorized" });
+              }
+              catch (Exception ex)
+              {
+                  return StatusCode(500, new { status = false, message = ex.Message });
+              }
+          }
+        */
+
         [HttpPost]
         [Authorize]
         public IActionResult AddBook([FromBody] BookModel model)
         {
             try
             {
-                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new { status = false, message = "Token not found or user is not logged in" });
+                }
+
+                string token = authHeader.Replace("Bearer ", "");
+
                 var result = _bookService.AddBook(model, token);
                 return Ok(new { status = true, message = "Book added", data = result });
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
-                return StatusCode(403, new { status = false, message = ex.Message });
+                return StatusCode(403, new { status = false, message = "User is unauthorized" });
             }
             catch (Exception ex)
             {
@@ -58,13 +87,22 @@ namespace BookStore.Controllers
             }
         }
 
+
         [HttpPut("{id}")]
-        [Authorize]
+        
         public IActionResult UpdateBook(int id, [FromBody] BookModel model)
         {
             try
             {
-                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new { status = false, message = "Token not found or user is not logged in" });
+                }
+
+                string token = authHeader.Replace("Bearer ", "");
                 var result = _bookService.UpdateBook(id, model, token);
                 return Ok(new { status = true, message = "Book updated", data = result });
             }
@@ -79,12 +117,20 @@ namespace BookStore.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        
         public IActionResult DeleteBook(int id)
         {
             try
             {
-                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new { status = false, message = "Token not found or user is not logged in" });
+                }
+
+                string token = authHeader.Replace("Bearer ", "");
+               // string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 var result = _bookService.DeleteBook(id, token);
                 return Ok(new { status = true, message = result });
             }
@@ -115,12 +161,16 @@ namespace BookStore.Controllers
         }
 
         [HttpGet("pages")]
-        public IActionResult GetAllBooksWithPage(int page = 1, int pageSize = 6)
+        public IActionResult GetAllBooksWithPage(int page)
         {
             try
             {
-                var books = _bookService.GetAllBooksWithPage(page, pageSize);
+                var books = _bookService.GetAllBooksWithPage(page);
                 return Ok(books);
+            }
+            catch (PageNotFoundException ex)
+            {
+                return NotFound(new { status = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -129,6 +179,23 @@ namespace BookStore.Controllers
         }
 
 
+        [HttpGet("recent")]
+        public IActionResult GetMostRecentBook()
+        {
+            try
+            {
+                var book = _bookService.GetMostRecentBook();
+
+                if (book == null)
+                    return NotFound("No books found.");
+
+                return Ok(book);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving the most recent book: " + ex.Message);
+            }
+        }
 
 
 
