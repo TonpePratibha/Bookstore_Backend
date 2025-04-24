@@ -19,10 +19,10 @@ namespace BuisnessLayer.Service
           _cartRepository = cartRepository;
         }
 
-        public string AddToCart(string token, CartModel cartModel)
+        public string AddToCart(string token, int bookId)
         { 
         
-        return _cartRepository.AddToCart(token, cartModel);
+        return _cartRepository.AddToCart(token, bookId);
 
                 }
     }

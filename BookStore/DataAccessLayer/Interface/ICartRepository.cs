@@ -10,6 +10,6 @@ namespace DataAccessLayer.Interface
 {
    public interface ICartRepository
     {
-        public string AddToCart(string token, CartModel cartModel);
+        public string AddToCart(string token, int bookId);
     }
 }

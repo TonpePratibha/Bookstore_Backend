@@ -23,42 +23,41 @@ namespace DataAccessLayer.Repository
             _jwtHelper = jwtHelper;
         }
 
-        public string AddToCart(string token, CartModel cartModel)
+        public string AddToCart(string token, int bookId)
         {
             try
             {
+                if (string.IsNullOrEmpty(token))
+                    return "Token is missing";
+
                 var role = _jwtHelper.ExtractRoleFromJwt(token);
                 var userId = _jwtHelper.ExtractUserIdFromJwt(token);
-
-                if (string.IsNullOrEmpty(role) || string.IsNullOrEmpty(token))
-                    return "Token missing or invalid.";
 
                 if (role.ToLower() != "user")
                     return "Only users can add to cart.";
 
-                // Map DTO to entity
+                var book = _context.Books.FirstOrDefault(b => b.Id == bookId);
+                if (book == null)
+                    return "Book not found.";
+
                 var cart = new Cart
                 {
                     PurchasedBy = userId,
-                    BookId = cartModel.BookId,
-                    Quantity = cartModel.Quantity,
-                    Price = cartModel.Price,
+                    BookId = bookId,
+                    Quantity = 1,
+                    Price = (decimal)book.Price,
                     IsPurchased = false
                 };
 
                 _context.Cart.Add(cart);
                 _context.SaveChanges();
 
-                return "Book added to cart successfully.";
+                return "Book added to cart.";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}\n{ex.StackTrace}");
-
                 return $"Error: {ex.Message}";
-                
             }
         }
-
     }
 }

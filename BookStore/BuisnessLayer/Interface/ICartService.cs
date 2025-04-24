@@ -10,6 +10,6 @@ namespace BuisnessLayer.Interface
 {
    public interface ICartService
     {
-        public string AddToCart(string token, CartModel cartModel);
+        public string AddToCart(string token, int bookId);
     }
 }

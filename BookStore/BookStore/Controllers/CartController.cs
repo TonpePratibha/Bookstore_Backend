@@ -18,51 +18,11 @@ namespace BookStore.Controllers
         _cartService = cartService;
         }
 
-        /*
-                [HttpPost]
-                [Authorize]
-                public IActionResult AddToCart([FromBody] CartModel cartModel)
-                {
-                    try
-                    {
-                        var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
-
-                        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-                        {
-                            return Unauthorized("Authorization token is missing or invalid.");
-                        }
-
-                        var token = authHeader.Replace("Bearer ", "");
-
-                        var result = _cartService.AddToCart(token, cartModel);
-
-                        if (result.Contains("Only users"))
-                        {
-                            return Forbid("Access denied: Only users are allowed to add items to cart.");
-                        }
-
-                        if (result.StartsWith("Error"))
-                        {
-                            return StatusCode(500, new { error = "Internal server error", detail = result });
-                        }
-
-                        if (result.StartsWith("Business error"))
-                        {
-                            return StatusCode(500, new { error = "Application logic failed", detail = result });
-                        }
-
-                        return Ok(new { message = "Book added to cart successfully." });
-                    }
-                    catch (Exception ex)
-                    {
-                        return StatusCode(500, new { error = "Unhandled exception", detail = ex.Message });
-                    }
-                }
-                */
-
-        [HttpPost]
        
-        public IActionResult AddToCart([FromBody] CartModel cartModel)
+
+        [HttpPost("bookId")]
+       
+        public IActionResult AddToCart(int bookId)
         {
             try
             {
@@ -77,7 +37,7 @@ namespace BookStore.Controllers
 
               
               
-                var result = _cartService.AddToCart(token, cartModel);
+                var result = _cartService.AddToCart(token, bookId);
 
                 if (result.Contains("Only users"))
                 {
