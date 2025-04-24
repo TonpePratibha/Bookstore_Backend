@@ -8,22 +8,41 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.DataContext
 {
-    public class ApplicationDbContext:DbContext
+    public class ApplicationDbContext : DbContext
     {
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         { }
 
-             public DbSet<User> Users { get; set; }
-        public DbSet<Admin> Admin{ get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Admin> Admin { get; set; }
         public DbSet<Book> Books { get; set; }
+
         public DbSet<RolebasedRefreshToken> RoleBasedRefreshTokens { get; set; }
+
+        public DbSet<Cart> Cart{ get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RolebasedRefreshToken>().ToTable("RoleBasedRefreshTokens");
-        }
 
+
+            modelBuilder.Entity<Cart>()
+        .Property(c => c.Price)
+        .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Cart>()
+                .HasOne(c => c.User)
+                .WithMany(u => u.Carts)
+                .HasForeignKey(c => c.PurchasedBy)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Cart>()
+                .HasOne(c => c.Book)
+                .WithMany(b => b.Carts)
+                .HasForeignKey(c => c.BookId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
 
     }
 }

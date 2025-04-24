@@ -32,5 +32,6 @@ namespace DataAccessLayer.Entity
         public DateTime? CreatedAt { get; set; }
         [Column(TypeName = "datetime")]
         public DateTime? UpdatedAt { get; set; }
+        public virtual ICollection<Cart> Carts { get; set; }
     }
 }

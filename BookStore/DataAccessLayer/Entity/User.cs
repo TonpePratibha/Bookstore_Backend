@@ -30,6 +30,7 @@ namespace DataAccessLayer.Entity
         
         public string Role { get; set; }
 
+        public virtual ICollection<Cart> Carts { get; set; }
 
     }
 }
