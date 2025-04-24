@@ -11,5 +11,10 @@ namespace DataAccessLayer.Interface
    public interface ICartRepository
     {
         public string AddToCart(string token, int bookId);
+        public string UpdateCartQuantity(string token, int bookId, int newQuantity);
+        public string DeleteFromCartIfQuantityZero(string token, int bookId);
+        //public CartSummeryModel GetCartDetails(string token);
+
+        public CartResponseModel GetCartDetails(string token);
     }
 }
