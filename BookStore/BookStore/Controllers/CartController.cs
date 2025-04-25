@@ -18,46 +18,77 @@ namespace BookStore.Controllers
         _cartService = cartService;
         }
 
-       
-
-        [HttpPost("bookId")]
-       
+        [HttpPost]
         public IActionResult AddToCart(int bookId)
         {
             try
             {
-              
                 var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
-              
                 if (string.IsNullOrEmpty(token))
                 {
                     return Unauthorized(new { message = "Authorization token is missing. Please provide a valid token." });
                 }
 
-              
-              
-                var result = _cartService.AddToCart(token, bookId);
+                var cartItem = _cartService.AddToCart(token, bookId);
 
-                if (result.Contains("Only users"))
+                if (cartItem == null)
                 {
-                    return Unauthorized(new { message = "Only users can add items to the cart." });
+                    return BadRequest(new { message = "Could not add to cart. Possible reasons: invalid token, book/user not found, or only users have access admin can't add cart" });
                 }
 
-                if (result.StartsWith("Error") || result.StartsWith("Repository error"))
+                return Ok(new
                 {
-                    return StatusCode(500, new { message = "Internal server error. Please try again later." });
-                }
-
-                return Ok(new { message = "Book added to cart successfully." });
+                    message = "Book added to cart successfully.",
+                    data = cartItem
+                });
             }
             catch (Exception ex)
             {
-               
                 return StatusCode(500, new { message = $"An unexpected error occurred: {ex.Message}" });
             }
         }
 
+
+        /*
+                [HttpPost]
+
+                public IActionResult AddToCart(int bookId)
+                {
+                    try
+                    {
+
+                        var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+
+                        if (string.IsNullOrEmpty(token))
+                        {
+                            return Unauthorized(new { message = "Authorization token is missing. Please provide a valid token." });
+                        }
+
+
+
+                        var result = _cartService.AddToCart(token, bookId);
+
+                        if (result.Contains("Only users"))
+                        {
+                            return Unauthorized(new { message = "Only users can add items to the cart." });
+                        }
+
+                        if (result.StartsWith("Error") || result.StartsWith("Repository error"))
+                        {
+                            return StatusCode(500, new { message = "Internal server error. Please try again later." });
+                        }
+
+                        return Ok(new { message = "Book added to cart successfully." });
+                    }
+                    catch (Exception ex)
+                    {
+
+                        return StatusCode(500, new { message = $"An unexpected error occurred: {ex.Message}" });
+                    }
+                }
+                */
         [HttpPut("{bookId}")]
         public IActionResult UpdateCart(int bookId, [FromQuery] int quantity)
         {
@@ -66,29 +97,30 @@ namespace BookStore.Controllers
                 var token = Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
 
                 if (string.IsNullOrEmpty(token))
-                    return Unauthorized("Token is missing or invalid.");
+                {
+                    return Unauthorized(new { message = "Authorization token is missing." });
+                }
 
                 var result = _cartService.UpdateCartQuantity(token, bookId, quantity);
 
-                if (result.Contains("Unauthorized", StringComparison.OrdinalIgnoreCase))
-                    return Unauthorized(result);
+                if (result == null)
+                {
+                    return BadRequest(new { message = "Update failed. Either you're unauthorized, or the item/book was not found or quantity is invalid / admin cant have access to cart" });
+                }
 
-                if (result.Contains("Access denied", StringComparison.OrdinalIgnoreCase))
-                    return Forbid(result);
-
-                if (result.Contains("not found", StringComparison.OrdinalIgnoreCase))
-                    return NotFound(result);
-
-                if (result.Contains("Invalid", StringComparison.OrdinalIgnoreCase))
-                    return BadRequest(result);
-
-                return Ok(result);
+                return Ok(new
+                {
+                    message = "Cart updated successfully.",
+                    data = result
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+
+
 
         [HttpDelete("{bookId}")]
         public IActionResult DeleteCartItemIfQuantityZero(int bookId)
@@ -118,32 +150,8 @@ namespace BookStore.Controllers
             }
         }
 
-        /*
-        [HttpGet]
-        public IActionResult GetCart()
-        {
-            try
-            {
-                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(token))
-                    return Unauthorized("Authorization token is missing.");
-
-                var result = _cartService.GetCartDetails(token);
-
-             
-
-                 if (result == null)
-                      return NotFound("Cart is empty or not found.");
-                
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-        */
+     
+      
 
 
         [HttpGet]

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,84 +25,170 @@ namespace DataAccessLayer.Repository
             _jwtHelper = jwtHelper;
         }
 
-        public string AddToCart(string token, int bookId)
+        
+
+        public CartModel AddToCart(string token, int bookId)
         {
             try
             {
                 if (string.IsNullOrEmpty(token))
-                    return "Token is missing";
+                    return null;
 
                 var role = _jwtHelper.ExtractRoleFromJwt(token);
                 var userId = _jwtHelper.ExtractUserIdFromJwt(token);
 
                 if (role.ToLower() != "user")
-                    return "Only users can add to cart.";
+                    return null;
 
                 var book = _context.Books.FirstOrDefault(b => b.Id == bookId);
                 if (book == null)
-                    return "Book not found.";
+                    return null;
 
-                var cart = new Cart
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                    return null;
+
+                // Check if the cart already contains this book for the user
+                var existingCartItem = _context.Cart.FirstOrDefault(c => c.PurchasedBy == userId && c.BookId == bookId && !c.IsPurchased);
+
+                if (existingCartItem != null)
+                {
+                    existingCartItem.Quantity += 1;
+                    existingCartItem.Price = (decimal)book.Price * existingCartItem.Quantity;
+                    _context.Cart.Update(existingCartItem);
+                }
+                else
+                {
+                    var newCart = new Cart
+                    {
+                        PurchasedBy = userId,
+                        BookId = bookId,
+                        Quantity = 1,
+                        Price = (decimal)book.Price,
+                        IsPurchased = false
+                    };
+                    _context.Cart.Add(newCart);
+                }
+
+                _context.SaveChanges();
+
+                return new CartModel
                 {
                     PurchasedBy = userId,
                     BookId = bookId,
-                    Quantity = 1,
-                    Price = (decimal)book.Price,
-                    IsPurchased = false
+                    Quantity = existingCartItem != null ? existingCartItem.Quantity : 1,
+                    Price = existingCartItem != null ? existingCartItem.Price : (decimal)book.Price,
+                    IsPurchased = false,
+                    UserFirstName = user.FirstName,
+                    UserLastName = user.LastName,
+                    UserEmail = user.Email
+                   
                 };
-
-                _context.Cart.Add(cart);
-                _context.SaveChanges();
-
-                return "Book added to cart.";
             }
-            catch (Exception ex)
+            catch
             {
-                return $"Error: {ex.Message}";
+                return null;
             }
         }
 
 
-       
 
 
-        public string UpdateCartQuantity(string token, int bookId, int newQuantity)
+        /*
+
+                public string UpdateCartQuantity(string token, int bookId, int newQuantity)
+                {
+                    try
+                    {
+                        var userId = _jwtHelper.ExtractUserIdFromJwt(token);
+                        var role = _jwtHelper.ExtractRoleFromJwt(token);
+
+                        if (role.ToLower() != "user") return "Only users can update cart.";
+
+                        var cartItem = _context.Cart.FirstOrDefault(c =>
+                            c.PurchasedBy == userId && c.BookId == bookId && !c.IsPurchased);
+
+                        if (cartItem == null)
+                            return "Cart item not found.";
+
+                        if (newQuantity <= 0)
+                        {
+                            _context.Cart.Remove(cartItem);
+                            _context.SaveChanges();
+                            return "Item removed from cart as quantity was 0.";
+                        }
+
+
+                        var book = _context.Books.FirstOrDefault(b => b.Id == bookId);
+                        if (book == null)
+                            return "Book not found.";
+
+                        cartItem.Quantity = newQuantity;
+                        cartItem.Price = (decimal)(book.Price * newQuantity);
+
+                        _context.SaveChanges();
+
+                        return "Cart updated successfully.";
+                    }
+                    catch (Exception ex)
+                    {
+                        return $"Error: {ex.Message}";
+                    }
+                }
+        */
+
+
+        public CartModel UpdateCartQuantity(string token, int bookId, int newQuantity)
         {
             try
             {
                 var userId = _jwtHelper.ExtractUserIdFromJwt(token);
                 var role = _jwtHelper.ExtractRoleFromJwt(token);
 
-                if (role.ToLower() != "user") return "Only users can update cart.";
+                if (role.ToLower() != "user") return null;
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
 
                 var cartItem = _context.Cart.FirstOrDefault(c =>
                     c.PurchasedBy == userId && c.BookId == bookId && !c.IsPurchased);
 
+
                 if (cartItem == null)
-                    return "Cart item not found.";
+                    return null;
 
                 if (newQuantity <= 0)
                 {
                     _context.Cart.Remove(cartItem);
                     _context.SaveChanges();
-                    return "Item removed from cart as quantity was 0.";
+                    return null;
                 }
 
 
                 var book = _context.Books.FirstOrDefault(b => b.Id == bookId);
                 if (book == null)
-                    return "Book not found.";
+                    return null;
 
                 cartItem.Quantity = newQuantity;
                 cartItem.Price = (decimal)(book.Price * newQuantity);
 
                 _context.SaveChanges();
 
-                return "Cart updated successfully.";
+                return  new CartModel { 
+                    PurchasedBy = userId,
+                    UserFirstName =user.FirstName,
+               
+        UserLastName=user.LastName,
+       UserEmail=user.Email,
+                BookId = bookId,
+                Quantity=cartItem.Quantity,
+                Price=cartItem.Price 
+                
+                };
             }
             catch (Exception ex)
             {
-                return $"Error: {ex.Message}";
+                return null;
             }
         }
 
@@ -136,47 +223,55 @@ namespace DataAccessLayer.Repository
                 return $"An error occurred while deleting the cart item: {ex.Message}";
             }
         }
-        /*
-        public CartSummeryModel GetCartDetails(string token)
-        {
-            try
-            {
-                int userId = _jwtHelper.ExtractUserIdFromJwt(token);
-                string role = _jwtHelper.ExtractRoleFromJwt(token);
 
-                if (role.ToLower() != "user")
-                    return null;
 
-                var cartItems = _context.Cart
-                    .Where(c => c.PurchasedBy == userId && !c.IsPurchased)
-                    .Include(c => c.Book)
-                    .ToList();
 
-                if (!cartItems.Any())
-                    return null;
 
-                var cartList = cartItems.Select(c => new CartItemModel
-                {
-                    BookId = c.BookId,
-                    BookName = c.Book.BookName,
-                    Quantity = c.Quantity,
-                    Price = c.Price
-                }).ToList();
+        /*  public CartResponseModel GetCartDetails(string token)
+          {
+              try
+              {
+                  int userId = _jwtHelper.ExtractUserIdFromJwt(token);
+                  string role = _jwtHelper.ExtractRoleFromJwt(token);
 
-                return new CartSummeryModel
-                {
-                    Items = cartList,
-                    TotalQuantity = cartList.Sum(x => x.Quantity),
-                    TotalCost = cartList.Sum(x => x.Price)
-                };
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
+                  if (role.ToLower() != "user")
+                      return new CartResponseModel { IsSuccess = false, Message = "Only users are allowed to access the cart." };
 
-        */
+                  var cartItems = _context.Cart
+                      .Where(c => c.PurchasedBy == userId && !c.IsPurchased)
+                      .Include(c => c.Book)
+                      .ToList();
+
+                  if (!cartItems.Any())
+                      return new CartResponseModel { IsSuccess = false, Message = "Cart is empty or not found." };
+
+                  var cartList = cartItems.Select(c => new CartItemModel
+                  {
+                      BookId = c.BookId,
+                      BookName = c.Book.BookName,
+                      Quantity = c.Quantity,
+                      Price = c.Price
+                  }).ToList();
+
+                  return new CartResponseModel
+                  {
+                      IsSuccess = true,
+                      Message = "Cart fetched successfully.",
+                      Data = new CartSummeryModel
+                      {
+                          Items = cartList,
+                          TotalQuantity = cartList.Sum(x => x.Quantity),
+                          TotalCost = cartList.Sum(x => x.Price)
+                      }
+                  };
+              }
+              catch (Exception ex)
+              {
+                  return new CartResponseModel { IsSuccess = false, Message = $"Internal error: {ex.Message}" };
+              }
+          }
+
+          */
 
 
 
@@ -189,6 +284,10 @@ namespace DataAccessLayer.Repository
 
                 if (role.ToLower() != "user")
                     return new CartResponseModel { IsSuccess = false, Message = "Only users are allowed to access the cart." };
+
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                    return new CartResponseModel { IsSuccess = false, Message = "User not found." };
 
                 var cartItems = _context.Cart
                     .Where(c => c.PurchasedBy == userId && !c.IsPurchased)
@@ -214,7 +313,14 @@ namespace DataAccessLayer.Repository
                     {
                         Items = cartList,
                         TotalQuantity = cartList.Sum(x => x.Quantity),
-                        TotalCost = cartList.Sum(x => x.Price)
+                        TotalCost = cartList.Sum(x => x.Price),
+                        User = new UserDetailsModel
+                        {
+                            UserId = user.Id,
+                            Email = user.Email,
+                            FirstName = user.FirstName,
+                            LastName= user.LastName
+                        }
                     }
                 };
             }
@@ -223,7 +329,6 @@ namespace DataAccessLayer.Repository
                 return new CartResponseModel { IsSuccess = false, Message = $"Internal error: {ex.Message}" };
             }
         }
-
 
     }
 }

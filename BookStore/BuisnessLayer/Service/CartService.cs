@@ -19,7 +19,7 @@ namespace BuisnessLayer.Service
           _cartRepository = cartRepository;
         }
 
-        public string AddToCart(string token, int bookId)
+        public CartModel AddToCart(string token, int bookId)
         { 
         
         return _cartRepository.AddToCart(token, bookId);
@@ -27,7 +27,7 @@ namespace BuisnessLayer.Service
                 }
 
 
-        public string UpdateCartQuantity(string token, int bookId, int newQuantity) { 
+        public CartModel UpdateCartQuantity(string token, int bookId, int newQuantity) { 
         
         return _cartRepository.UpdateCartQuantity(token, bookId, newQuantity);
         }
