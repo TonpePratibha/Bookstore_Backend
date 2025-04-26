@@ -32,5 +32,6 @@ namespace DataAccessLayer.Entity
 
         public virtual ICollection<Cart> Carts { get; set; }
 
+        public virtual ICollection<WishList> Wishlist { get; set; }
     }
 }

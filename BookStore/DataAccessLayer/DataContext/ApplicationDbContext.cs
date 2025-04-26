@@ -22,6 +22,8 @@ namespace DataAccessLayer.DataContext
 
         public DbSet<Cart> Cart{ get; set; }
 
+        public DbSet<WishList> Wishlist { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RolebasedRefreshToken>().ToTable("RoleBasedRefreshTokens");
@@ -41,6 +43,20 @@ namespace DataAccessLayer.DataContext
                 .HasOne(c => c.Book)
                 .WithMany(b => b.Carts)
                 .HasForeignKey(c => c.BookId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+
+            modelBuilder.Entity<WishList>()
+              .HasOne(w => w.User)
+              .WithMany(u => u.Wishlist)
+              .HasForeignKey(w => w.AddedBy)
+              .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WishList>()
+                .HasOne(w => w.Book)
+                .WithMany(b => b.Wishlist)
+                .HasForeignKey(w => w.BookId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
