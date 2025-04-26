@@ -13,8 +13,7 @@ namespace DataAccessLayer.Interface
         public CartModel AddToCart(string token, int bookId);
         public CartModel UpdateCartQuantity(string token, int bookId, int newQuantity);
         public string DeleteFromCartIfQuantityZero(string token, int bookId);
-        //public CartSummeryModel GetCartDetails(string token);
-
+       
         public CartResponseModel GetCartDetails(string token);
     }
 }
