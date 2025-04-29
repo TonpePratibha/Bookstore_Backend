@@ -75,6 +75,12 @@ namespace DataAccessLayer.Repository
                     AddedBy = userId,
                     BookId = bookId,
                     BookName = book.BookName,
+                    Author = book.Author,
+                    Description = book.Description,
+                    Price = book.Price,
+                    DiscountPrice = book.DiscountPrice,
+                    Quantity = book.Quantity,
+                    BookImage = book.BookImage,
 
                     UserFirstName = user.FirstName,
                     UserLastName = user.LastName,
@@ -148,7 +154,14 @@ namespace DataAccessLayer.Repository
                 {
                     BookId = c.BookId,
                     BookName = c.Book.BookName,
-                    
+                    Author = c.Book.Author,
+                    Description = c.Book.Description,
+                    Price = c.Book.Price,
+                    DiscountPrice = c.Book.DiscountPrice,
+                    Quantity = c.Book.Quantity,
+                    BookImage = c.Book.BookImage
+
+
                 }).ToList();
 
                 return new WishListResponseModel
