@@ -23,6 +23,9 @@ namespace DataAccessLayer.DataContext
         public DbSet<Cart> Cart{ get; set; }
 
         public DbSet<WishList> Wishlist { get; set; }
+        public DbSet<CustomerDetails> customerDetails { get; set; }
+        public DbSet<OrderDetails> orderDetails { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -58,6 +61,9 @@ namespace DataAccessLayer.DataContext
                 .WithMany(b => b.Wishlist)
                 .HasForeignKey(w => w.BookId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+
+         
         }
 
     }

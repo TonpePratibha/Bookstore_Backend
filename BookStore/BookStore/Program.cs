@@ -32,6 +32,10 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IWishListRepository, WishListRepository>();
 builder.Services.AddScoped<IWishListService, WishListService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICustomerDetailsRepository, CustomerDetailsRepository>();
+builder.Services.AddScoped<ICustomerDetailsService, CustomerDetailsService>();
 
 builder.Services.AddHttpContextAccessor();  
 
