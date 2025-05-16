@@ -103,7 +103,7 @@ namespace BookStore.Controllers
                 else if (result.Contains("not zero"))
                     return BadRequest(result);
 
-                return Ok(result);
+                return Ok(new { result });
             }
             catch (Exception ex)
             {

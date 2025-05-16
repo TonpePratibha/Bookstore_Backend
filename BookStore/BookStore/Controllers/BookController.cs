@@ -159,14 +159,32 @@ namespace BookStore.Controllers
                 return StatusCode(500, $"Error retrieving books: {ex.Message}");
             }
         }
-
+        /*
+                [HttpGet("pages")]
+                public IActionResult GetAllBooksWithPage(int page)
+                {
+                    try
+                    {
+                        var books = _bookService.GetAllBooksWithPage(page);
+                        return Ok(books);
+                    }
+                    catch (PageNotFoundException ex)
+                    {
+                        return NotFound(new { status = false, message = ex.Message });
+                    }
+                    catch (Exception ex)
+                    {
+                        return StatusCode(500, new { status = false, message = $"Error retrieving books: {ex.Message}" });
+                    }
+                }
+                */
         [HttpGet("pages")]
         public IActionResult GetAllBooksWithPage(int page)
         {
             try
             {
-                var books = _bookService.GetAllBooksWithPage(page);
-                return Ok(books);
+                var result = _bookService.GetAllBooksWithPage(page);
+                return Ok(result);
             }
             catch (PageNotFoundException ex)
             {
@@ -184,12 +202,12 @@ namespace BookStore.Controllers
         {
             try
             {
-                var book = _bookService.GetMostRecentBook();
+                var books = _bookService.GetAllRecentBooks();
 
-                if (book == null)
+                if (books == null)
                     return NotFound("No books found.");
 
-                return Ok(book);
+                return Ok(books);
             }
             catch (Exception ex)
             {
@@ -219,15 +237,15 @@ namespace BookStore.Controllers
 
 
 
-        [HttpGet("searchbyauthor")]
-        public IActionResult SearchBooksByAuthor([FromQuery] string author)
+        [HttpGet("search")]
+        public IActionResult SearchBooks([FromQuery] string search)
         {
             try
             {
-                var books = _bookService.SearchBooksByAuthor(author);
+                var books = _bookService.SearchBooks(search);
                 if (!books.Any())
                 {
-                    return NotFound("No books found for this author.");
+                    return NotFound("No books found for this author or title");
                 }
                 return Ok(books);
             }
@@ -239,7 +257,7 @@ namespace BookStore.Controllers
         }
 
 
-
+/*
         [HttpGet("searchbytitle")]
         public IActionResult SearchBooksByTitle([FromQuery] string title)
         {
@@ -257,7 +275,7 @@ namespace BookStore.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
+*/
 
         [HttpGet("sortprice_asc")]
         public IActionResult GetBooksSortedByPriceAsc()

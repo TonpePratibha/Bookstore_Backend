@@ -173,7 +173,8 @@ namespace BookStore.Controllers
                 _userService.SendResetPasswordEmail(model.Email);
        
 
-                return Ok("Password reset email sent.");
+               // return Ok("Password reset email sent.");
+                return Ok(new { message = "Password reset email sent." });
             }
             catch (Exception ex)
             {

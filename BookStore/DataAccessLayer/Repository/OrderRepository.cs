@@ -26,25 +26,104 @@ namespace DataAccessLayer.Repository
 
 
         }
-     
+
+        /*
+                public OrderResponse PlaceOrder(string token)
+                {
+
+                    var userId = _jwtHelper.ExtractUserIdFromJwt(token);
+                    var userRole = _jwtHelper.ExtractRoleFromJwt(token);
+
+
+                    if (userRole != "user")
+                    {
+                        throw new UnauthorizedAccessException("Only users are allowed to place orders.");
+                    }
+
+
+                    var cartItems = _context.Cart
+                                            .Where(c => c.PurchasedBy == userId && !c.IsPurchased)
+                                            .Include(c => c.Book) // Include Book details
+                                            .Include(c => c.User) // Include User details
+                                            .ToList();
+
+                    if (cartItems.Count == 0)
+                    {
+                        throw new InvalidOperationException("No items in cart to place order.");
+                    }
+
+                    var orderResponses = new List<OrderResponseModel>();
+
+
+                    foreach (var cartItem in cartItems)
+                    {
+
+                        var order = new OrderDetails
+                        {
+                            OrderedBy = userId,
+                            BookId = cartItem.BookId,
+                            Quantity = cartItem.Quantity,
+                            TotalPrice = cartItem.Price,
+                            Orderdate = DateTime.UtcNow
+                        };
+
+
+                        _context.orderDetails.Add(order);
+
+
+                        var orderResponse = new OrderResponseModel
+                        {
+                            OrderId = order.Id,
+                            OrderedBy = order.OrderedBy,
+                            UserFirstName = cartItem.User.FirstName,
+                            UserLastName = cartItem.User.LastName,
+                            UserEmail = cartItem.User.Email,
+                            BookId = cartItem.BookId,
+                            BookName = cartItem.Book.BookName,
+                            BookImage=cartItem.Book.BookImage,
+                            Author = cartItem.Book.Author,
+                            Price = cartItem.Price,
+                            Quantity = cartItem.Quantity,
+                            OrderDate = order.Orderdate
+                        };
+
+
+                        orderResponses.Add(orderResponse);
+                    }
+
+
+                    _context.Cart.RemoveRange(cartItems);
+
+
+                    _context.SaveChanges();
+
+
+                    return new OrderResponse
+                    {
+                        Message = "Order placed successfully.",
+                        Orders = orderResponses
+                    };
+                }
+        */
+
+
+
+
 
         public OrderResponse PlaceOrder(string token)
         {
-            // 1. Extract User ID and Role from JWT Token
             var userId = _jwtHelper.ExtractUserIdFromJwt(token);
             var userRole = _jwtHelper.ExtractRoleFromJwt(token);
 
-            // 2. Ensure that only users can place orders (not admins)
             if (userRole != "user")
             {
                 throw new UnauthorizedAccessException("Only users are allowed to place orders.");
             }
 
-            // 3. Fetch the cart items for the user (can have multiple different books)
             var cartItems = _context.Cart
                                     .Where(c => c.PurchasedBy == userId && !c.IsPurchased)
-                                    .Include(c => c.Book) // Include Book details
-                                    .Include(c => c.User) // Include User details
+                                    .Include(c => c.Book)
+                                    .Include(c => c.User)
                                     .ToList();
 
             if (cartItems.Count == 0)
@@ -54,10 +133,19 @@ namespace DataAccessLayer.Repository
 
             var orderResponses = new List<OrderResponseModel>();
 
-           
             foreach (var cartItem in cartItems)
             {
+                var book = cartItem.Book;
+
+               
+                if (book.Quantity < cartItem.Quantity)
+                {
+                    throw new InvalidOperationException($"Not enough quantity for book '{book.BookName}'. Available: {book.Quantity}, Requested: {cartItem.Quantity}");
+                }
+
               
+                book.Quantity -= cartItem.Quantity;
+
                 var order = new OrderDetails
                 {
                     OrderedBy = userId,
@@ -67,10 +155,8 @@ namespace DataAccessLayer.Repository
                     Orderdate = DateTime.UtcNow
                 };
 
-              
                 _context.orderDetails.Add(order);
 
-            
                 var orderResponse = new OrderResponseModel
                 {
                     OrderId = order.Id,
@@ -79,24 +165,20 @@ namespace DataAccessLayer.Repository
                     UserLastName = cartItem.User.LastName,
                     UserEmail = cartItem.User.Email,
                     BookId = cartItem.BookId,
-                    BookName = cartItem.Book.BookName,
-                    Author = cartItem.Book.Author,
+                    BookName = book.BookName,
+                    BookImage = book.BookImage,
+                    Author = book.Author,
                     Price = cartItem.Price,
                     Quantity = cartItem.Quantity,
                     OrderDate = order.Orderdate
                 };
 
-                
                 orderResponses.Add(orderResponse);
             }
 
-            
             _context.Cart.RemoveRange(cartItems);
-
-            
             _context.SaveChanges();
 
-            
             return new OrderResponse
             {
                 Message = "Order placed successfully.",
@@ -104,9 +186,11 @@ namespace DataAccessLayer.Repository
             };
         }
 
+
+
         public List<OrderItemresponse> GetOrdersByUser(string token)
         {
-            // Extract user ID and role directly from the token in the repository
+           
             var userId = _jwtHelper.ExtractUserIdFromJwt(token);
             string role = _jwtHelper.ExtractRoleFromJwt(token);
 
@@ -125,10 +209,12 @@ namespace DataAccessLayer.Repository
             var response = orders.Select(o => new OrderItemresponse
             {
                 BookName = o.Book.BookName,
+                BookImage=o.Book.BookImage,
                 Author = o.Book.Author,
                 Quantity = o.Quantity,
                 PricePerItem = o.TotalPrice / o.Quantity,
-                TotalPrice = o.TotalPrice
+                TotalPrice = o.TotalPrice,
+                Orderdate=o.Orderdate,
             }).ToList();
 
             return response;

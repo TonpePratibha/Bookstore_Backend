@@ -34,13 +34,11 @@ namespace BuisnessLayer.Service
             return _bookRepository.GetAllBooks();
         }
 
-        public List<Book> GetAllBooksWithPage(int page)
-        {
-            return _bookRepository.GetAllBooksWithPage(page);
-
+        public PaginatedBooksResult GetAllBooksWithPage(int page) { 
+        return _bookRepository.GetAllBooksWithPage(page);
         }
-        public Book GetMostRecentBook() { 
-         return _bookRepository.GetMostRecentBook();    
+        public IEnumerable<Book> GetAllRecentBooks() { 
+        return _bookRepository.GetAllRecentBooks();
         }
 
         public Book GetBookById(int id)
@@ -51,7 +49,12 @@ namespace BuisnessLayer.Service
 
         }
 
+        public IEnumerable<Book> SearchBooks(string search) {
+            return _bookRepository.SearchBooks(search);
+        }
 
+
+/*
         public IEnumerable<Book> SearchBooksByAuthor(string author)
         {
 
@@ -66,7 +69,7 @@ namespace BuisnessLayer.Service
             
                 return _bookRepository.SearchBooksByTitle(title);
             }
-
+*/
 
         public IEnumerable<Book> GetBooksSortedByPriceAsc()
         {

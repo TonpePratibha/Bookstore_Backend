@@ -10,9 +10,11 @@ namespace DataAccessLayer.Modal
     {
 
         public string BookName { get; set; }
+        public string BookImage { get; set; }
         public string Author { get; set; }
         public int Quantity { get; set; }
         public decimal PricePerItem { get; set; }
         public decimal TotalPrice { get; set; }
+        public DateTime Orderdate { get; set; }
     }
 }

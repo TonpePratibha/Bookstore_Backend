@@ -168,8 +168,9 @@ namespace DataAccessLayer.Repository
                 if (cartItem == null)
                     return "Cart item not found.";
 
-                if (cartItem.Quantity != 0)
+             /*   if (cartItem.Quantity != 0)
                     return "Item quantity is not zero. Cannot delete.";
+             */ 
 
                 _context.Cart.Remove(cartItem);
                 _context.SaveChanges();
@@ -218,8 +219,10 @@ namespace DataAccessLayer.Repository
                 {
                     BookId = c.BookId,
                     BookName = c.Book.BookName,
+                    Author = c.Book.Author,
                     Quantity = c.Quantity,
-                    Price = c.Price
+                    Price = c.Price,
+                    BookImage = c.Book.BookImage
                 }).ToList();
 
                 return new CartResponseModel

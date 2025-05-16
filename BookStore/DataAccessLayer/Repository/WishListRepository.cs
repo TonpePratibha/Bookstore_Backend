@@ -49,6 +49,13 @@ namespace DataAccessLayer.Repository
                 if (user == null)
                     return null;
 
+                var isInCart = _context.Cart.Any(c => c.PurchasedBy == userId && c.BookId == bookId);
+                if (isInCart)
+                {
+                    // ❌ If the book is in the cart, don't add it to wishlist
+                    return null;
+                }
+
                 // Check if the cart already contains this book for the user
                 var existingItem = _context.Wishlist.FirstOrDefault(c => c.AddedBy == userId && c.BookId == bookId);
 

@@ -181,11 +181,11 @@ namespace DataAccessLayer.Repository
             }
         }
 
-        public List<Book> GetAllBooksWithPage(int page)
+        public PaginatedBooksResult GetAllBooksWithPage(int page)
         {
             try
             {
-                int pageSize = 6;
+                int pageSize = 8;
                 int totalBooks = _context.Books.Count();
                 int totalPages = (int)Math.Ceiling((double)totalBooks / pageSize);
 
@@ -194,11 +194,17 @@ namespace DataAccessLayer.Repository
                     throw new PageNotFoundException($"Page {page} not found. Total pages: {totalPages}");
                 }
 
-                return _context.Books
-                               .OrderBy(b => b.Id)
-                               .Skip((page - 1) * pageSize)
-                               .Take(pageSize)
-                               .ToList();
+                var books = _context.Books
+                                    .OrderBy(b => b.Id)
+                                    .Skip((page - 1) * pageSize)
+                                    .Take(pageSize)
+                                    .ToList();
+
+                return new PaginatedBooksResult
+                {
+                    Books = books,
+                    TotalCount = totalBooks
+                };
             }
             catch (Exception)
             {
@@ -206,19 +212,21 @@ namespace DataAccessLayer.Repository
             }
         }
 
-        public Book GetMostRecentBook()
+
+        public IEnumerable<Book> GetAllRecentBooks()
         {
             try
             {
                 return _context.Books
                                .OrderByDescending(b => b.CreatedAt)
-                               .FirstOrDefault();
+                               .ToList();
             }
             catch (Exception ex)
             {
-                throw new Exception("Error retrieving the most recent book: " + ex.Message);
+                throw new Exception("Error retrieving  recent books " + ex.Message);
             }
         }
+
 
 
         public Book GetBookById(int id)
@@ -237,46 +245,68 @@ namespace DataAccessLayer.Repository
 }
 
 
-        public IEnumerable<Book> SearchBooksByAuthor(string author)
+        public IEnumerable<Book> SearchBooks(string search)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(search))
+                    return new List<Book>();
+
+                string lowerSearch = search.ToLower();
+
                 return _context.Books
-                               .Where(b => b.Author.ToLower().Contains(author.ToLower()))
+                               .Where(b => b.Author.ToLower().Contains(lowerSearch) ||
+                                           b.BookName.ToLower().Contains(lowerSearch))
                                .ToList();
             }
             catch (Exception ex)
             {
-              
-                throw new Exception("Error fetching books by author from database.", ex);
+                throw new Exception("Error fetching books from database.", ex);
             }
         }
 
-        public IEnumerable<Book> SearchBooksByTitle(string title)
-        {
-            try
-            {
-                return _context.Books
-                               .Where(b => b.BookName.ToLower().Contains(title.ToLower()))
-                               .ToList();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error fetching books by title from database.", ex);
-            }
-        }
 
-        public IEnumerable<Book> GetBooksSortedByPriceAsc()
-        {
-            try
-            {
-                return _context.Books.OrderBy(b => b.Price).ToList();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Repository error during ascending sort.", ex);
-            }
-        }
+        /*  public IEnumerable<Book> SearchBooksByAuthor(string author)
+          {
+              try
+              {
+                  return _context.Books
+                                 .Where(b => b.Author.ToLower().Contains(author.ToLower()))
+                                 .ToList();
+              }
+              catch (Exception ex)
+              {
+
+                  throw new Exception("Error fetching books by author from database.", ex);
+              }
+          }
+
+          public IEnumerable<Book> SearchBooksByTitle(string title)
+          {
+              try
+              {
+                  return _context.Books
+                                 .Where(b => b.BookName.ToLower().Contains(title.ToLower()))
+                                 .ToList();
+              }
+              catch (Exception ex)
+              {
+                  throw new Exception("Error fetching books by title from database.", ex);
+              }
+          }
+        */
+          public IEnumerable<Book> GetBooksSortedByPriceAsc()
+          {
+              try
+              {
+                  return _context.Books.OrderBy(b => b.Price).ToList();
+              }
+              catch (Exception ex)
+              {
+                  throw new Exception("Repository error during ascending sort.", ex);
+              }
+          }
+        
         public IEnumerable<Book> GetBooksSortedByPriceDesc()
         {
             try
