@@ -94,7 +94,7 @@ namespace DataAccessLayer.Repository
 
 
 
-    
+
 
 
 
@@ -109,21 +109,27 @@ namespace DataAccessLayer.Repository
 
                 var user = _context.Users.FirstOrDefault(u => u.Id == userId);
 
-
                 var cartItem = _context.Cart.FirstOrDefault(c =>
                     c.PurchasedBy == userId && c.BookId == bookId && !c.IsPurchased);
-
 
                 if (cartItem == null)
                     return null;
 
-                if (newQuantity <= 0)
+                // ❗Prevent quantity below 1
+                if (newQuantity < 1)
                 {
-                    _context.Cart.Remove(cartItem);
-                    _context.SaveChanges();
-                    return null;
+                    // Optionally: return current cart state instead of null
+                    return new CartModel
+                    {
+                        PurchasedBy = userId,
+                        UserFirstName = user.FirstName,
+                        UserLastName = user.LastName,
+                        UserEmail = user.Email,
+                        BookId = bookId,
+                        Quantity = cartItem.Quantity,
+                        Price = cartItem.Price
+                    };
                 }
-
 
                 var book = _context.Books.FirstOrDefault(b => b.Id == bookId);
                 if (book == null)
@@ -134,16 +140,15 @@ namespace DataAccessLayer.Repository
 
                 _context.SaveChanges();
 
-                return  new CartModel { 
+                return new CartModel
+                {
                     PurchasedBy = userId,
-                    UserFirstName =user.FirstName,
-               
-        UserLastName=user.LastName,
-       UserEmail=user.Email,
-                BookId = bookId,
-                Quantity=cartItem.Quantity,
-                Price=cartItem.Price 
-                
+                    UserFirstName = user.FirstName,
+                    UserLastName = user.LastName,
+                    UserEmail = user.Email,
+                    BookId = bookId,
+                    Quantity = cartItem.Quantity,
+                    Price = cartItem.Price
                 };
             }
             catch (Exception ex)

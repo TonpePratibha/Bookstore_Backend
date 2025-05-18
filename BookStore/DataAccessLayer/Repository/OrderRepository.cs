@@ -156,6 +156,7 @@ namespace DataAccessLayer.Repository
                 };
 
                 _context.orderDetails.Add(order);
+                _context.SaveChanges();
 
                 var orderResponse = new OrderResponseModel
                 {
