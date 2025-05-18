@@ -25,6 +25,7 @@ namespace DataAccessLayer.DataContext
         public DbSet<WishList> Wishlist { get; set; }
         public DbSet<CustomerDetails> customerDetails { get; set; }
         public DbSet<OrderDetails> orderDetails { get; set; }
+        public DbSet<Feedback> feedbacks { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
