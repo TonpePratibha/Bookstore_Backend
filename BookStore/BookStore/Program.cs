@@ -13,8 +13,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using AspNetCoreRateLimit;
 
- var builder = WebApplication.CreateBuilder(args);
+
+var builder = WebApplication.CreateBuilder(args);
 
 // Database context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -39,6 +41,18 @@ builder.Services.AddScoped<ICustomerDetailsService, CustomerDetailsService>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
+
+
+
+// Rate Limiting Configuration
+builder.Services.AddMemoryCache();
+
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddInMemoryRateLimiting();
+//
 
 builder.Services.AddHttpContextAccessor();  
 
@@ -70,6 +84,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 */
+
 
 // CORS Policy
 builder.Services.AddCors(options =>
@@ -134,6 +149,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
+
+
+
+
 var app = builder.Build();
 
 // Use CORS
@@ -148,6 +168,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Bookstore API v1");
     });
 }
+app.UseIpRateLimiting();
 
 // Middleware pipeline
 app.UseHttpsRedirection();

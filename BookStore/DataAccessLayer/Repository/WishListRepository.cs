@@ -27,77 +27,60 @@ namespace DataAccessLayer.Repository
 
 
         }
-        public WishListModel AddToWishList(string token, int bookId) {
+      
 
-
+        public WishListModel AddToWishList(string token, int bookId)
+        {
             try
             {
-                if (string.IsNullOrEmpty(token))
-                    return null;
+                if (string.IsNullOrEmpty(token)) return null;
 
                 var role = _jwtHelper.ExtractRoleFromJwt(token);
                 var userId = _jwtHelper.ExtractUserIdFromJwt(token);
 
-                if (role.ToLower() != "user")
-                    return null;
+                if (role.ToLower() != "user") return null;
 
-                var book = _context.Books.FirstOrDefault(b => b.Id == bookId);
-                if (book == null)
-                    return null;
+              
+                var existing = _context.Wishlist
+                    .FirstOrDefault(w => w.AddedBy == userId && w.BookId == bookId);
 
-                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-                if (user == null)
-                    return null;
-
-                var isInCart = _context.Cart.Any(c => c.PurchasedBy == userId && c.BookId == bookId);
-                if (isInCart)
+                if (existing != null)
                 {
-                    // ❌ If the book is in the cart, don't add it to wishlist
-                    return null;
+                    throw new Exception("Book already present in wishlist.");
                 }
 
-                // Check if the cart already contains this book for the user
-                var existingItem = _context.Wishlist.FirstOrDefault(c => c.AddedBy == userId && c.BookId == bookId);
+               
+                _context.Database.ExecuteSqlRaw("EXEC AddToWishlist @UserId = {0}, @BookId = {1}", userId, bookId);
 
-                if (existingItem != null)
-                {
+               
+                var wishlist = _context.Wishlist
+                    .Include(w => w.Book)
+                    .Include(w => w.User)
+                    .FirstOrDefault(w => w.AddedBy == userId && w.BookId == bookId);
+
+                if (wishlist == null)
                     return null;
-                }
-                else
-                {
-                    var newwishlist = new WishList
-                    {
-                        AddedBy = userId,
-                        BookId = bookId,
-
-
-                    };
-                    _context.Wishlist.Add(newwishlist);
-                }
-
-                _context.SaveChanges();
 
                 return new WishListModel
                 {
                     AddedBy = userId,
                     BookId = bookId,
-                    BookName = book.BookName,
-                    Author = book.Author,
-                    Description = book.Description,
-                    Price = book.Price,
-                    DiscountPrice = book.DiscountPrice,
-                    Quantity = book.Quantity,
-                    BookImage = book.BookImage,
-
-                    UserFirstName = user.FirstName,
-                    UserLastName = user.LastName,
-                    UserEmail = user.Email
-
+                    BookName = wishlist.Book.BookName,
+                    Author = wishlist.Book.Author,
+                    Description = wishlist.Book.Description,
+                    Price = wishlist.Book.Price,
+                    DiscountPrice = wishlist.Book.DiscountPrice,
+                    Quantity = wishlist.Book.Quantity,
+                    BookImage = wishlist.Book.BookImage,
+                    UserFirstName = wishlist.User.FirstName,
+                    UserLastName = wishlist.User.LastName,
+                    UserEmail = wishlist.User.Email
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                // 👇 Throw the specific error upward so controller can handle it
+                throw new Exception(ex.Message);
             }
         }
 
@@ -112,14 +95,15 @@ namespace DataAccessLayer.Repository
                 if (string.IsNullOrEmpty(role) || role.ToLower() != "user")
                     return "Unauthorized. Only users can delete from wishlist.";
 
-                var wishlistItem = _context.Wishlist.FirstOrDefault(c => c.BookId == bookId && c.AddedBy == userId);
+                //   var wishlistItem = _context.Wishlist.FirstOrDefault(c => c.BookId == bookId && c.AddedBy == userId);  // using linq
+              var wishlistItem=  _context.Database.ExecuteSqlRaw("EXEC deletewishlistbyuserid @userid = {0}, @bookid = {1}", userId, bookId);  //using stored procoedure
 
                 if (wishlistItem == null)
                     return "wishlist item not found.";
 
                 
-                _context.Wishlist.Remove(wishlistItem);
-                _context.SaveChanges();
+              //  _context.Wishlist.Remove(wishlistItem);
+              //  _context.SaveChanges();
 
                 return "wishlist item deleted successfully.";
             }
@@ -148,20 +132,25 @@ namespace DataAccessLayer.Repository
                 var user = _context.Users.FirstOrDefault(u => u.Id == userId);
                 if (user == null)
                     return new WishListResponseModel { IsSuccess = false, Message = "User not found." };
+                /*
+                                var wishlistItems = _context.Wishlist
+                                    .Where(c => c.AddedBy == userId )
+                                    .Include(c => c.Book)
+                                    .ToList(); 
+                */   //using linque query
+                 
+               var wishlistItems= _context.WishlistBooks.FromSqlRaw("EXEC getwishlistbyuserid @userid = {0}", userId).ToList();
 
-                var wishlistItems = _context.Wishlist
-                    .Where(c => c.AddedBy == userId )
-                    .Include(c => c.Book)
-                    .ToList();
-
-                if (!wishlistItems.Any())
+          //done using stored procedure
+                if (wishlistItems == null || !wishlistItems.Any())
                     return new WishListResponseModel { IsSuccess = false, Message = "wishlist is empty or not found." };
 
-                var wishlistList = wishlistItems.Select(c => new WishlListItemModel
+             /*  
+                var wishlistList = wishlistItems.Select(c => new WishlListItemModel    //while using linq query
                 {
                     BookId = c.BookId,
                     BookName = c.Book.BookName,
-                    Author = c.Book.Author,
+                    Author = c.Book.Author,                 
                     Description = c.Book.Description,
                     Price = c.Book.Price,
                     DiscountPrice = c.Book.DiscountPrice,
@@ -169,6 +158,19 @@ namespace DataAccessLayer.Repository
                     BookImage = c.Book.BookImage
 
 
+                }).ToList();
+                */
+
+                var wishlistList = wishlistItems.Select(c => new WishlListItemModel
+                {
+                    BookId = c.BookId,
+                    BookName = c.BookName,
+                    Author = c.Author,
+                    Description = c.Description,
+                    Price = c.Price,
+                    DiscountPrice = c.DiscountPrice,
+                    Quantity = c.Quantity,
+                    BookImage = c.BookImage
                 }).ToList();
 
                 return new WishListResponseModel

@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Entity;
+using DataAccessLayer.Modal;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -26,10 +27,15 @@ namespace DataAccessLayer.DataContext
         public DbSet<CustomerDetails> customerDetails { get; set; }
         public DbSet<OrderDetails> orderDetails { get; set; }
         public DbSet<Feedback> feedbacks { get; set; }
-
+        public DbSet<WishlListItemModel> WishlistBooks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+
+
+            modelBuilder.Entity<WishlListItemModel>().HasNoKey();
+            base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<RolebasedRefreshToken>().ToTable("RoleBasedRefreshTokens");
 
 
