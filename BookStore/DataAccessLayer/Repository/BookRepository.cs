@@ -7,6 +7,7 @@ using DataAccessLayer.JWT;
 using DataAccessLayer.Modal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using System.Formats.Asn1;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DataAccessLayer.Repository
@@ -24,13 +26,15 @@ namespace DataAccessLayer.Repository
 
         private readonly  ApplicationDbContext _context;
         private readonly JwtHelper _jwtHelper;
-        private readonly IConfiguration _configuration; 
+        private readonly IConfiguration _configuration;
+        private readonly IDistributedCache _cache;
 
-        public BookRepository(ApplicationDbContext context,JwtHelper jwtHelper,IConfiguration configuration)
+        public BookRepository(ApplicationDbContext context,JwtHelper jwtHelper,IConfiguration configuration, IDistributedCache cache)
         {
             _context = context;
             _jwtHelper = jwtHelper;
             _configuration = configuration;
+            _cache = cache;
 
         }
 
@@ -106,6 +110,9 @@ namespace DataAccessLayer.Repository
 
                 _context.Books.Add(book);
                 _context.SaveChanges();
+
+
+                _cache.Remove("books:all");
                 return book;
             }
             catch (Exception ex)
@@ -136,6 +143,8 @@ namespace DataAccessLayer.Repository
                 book.UpdatedAt = DateTime.Now;
 
                 _context.SaveChanges();
+                _cache.Remove("books:all");     // Remove book list cache
+                _cache.Remove($"book:{id}");
                 return book;
             }
             catch (Exception ex)
@@ -143,6 +152,9 @@ namespace DataAccessLayer.Repository
                 throw new Exception($"Error while updating book: {ex.Message}");
             }
         }
+       
+
+
 
         public string DeleteBook(int id, string token)
         {
@@ -158,27 +170,46 @@ namespace DataAccessLayer.Repository
 
                 _context.Books.Remove(book);
                 _context.SaveChanges();
+
+                
+               _cache.Remove($"book:{id}");      // Remove individual book 
+               _cache.Remove("books:all");       // Remove  books list cache
+
                 return "Book deleted successfully";
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error while deleting book: {ex.Message}");
             }
-
         }
 
 
 
-            public List<Book>GetAllBooks()
-          {
-            try
+
+        public IEnumerable<Book> GetAllBooks()
+        {
+            const string cacheKey = "books:all";
+
+            var cachedBooks = _cache.GetString(cacheKey);
+            if (!string.IsNullOrEmpty(cachedBooks))
             {
-                return _context.Books.ToList();
+               Console.WriteLine("data from redis");
+                return JsonSerializer.Deserialize<List<Book>>(cachedBooks);
             }
-            catch (Exception ex)
+
+            var books = _context.Books.ToList();
+            Console.WriteLine("data from db");
+
+            if (books.Any())
             {
-                return new List<Book>();
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) // Cache duration
+                };
+                _cache.SetString(cacheKey, JsonSerializer.Serialize(books), cacheOptions);
             }
+
+            return books;
         }
 
         public PaginatedBooksResult GetAllBooksWithPage(int page)
@@ -212,37 +243,84 @@ namespace DataAccessLayer.Repository
             }
         }
 
+      
 
         public IEnumerable<Book> GetAllRecentBooks()
         {
             try
             {
-                return _context.Books
-                               .OrderByDescending(b => b.CreatedAt)
-                               .ToList();
+                const string cacheKey = "books:recent";
+
+             
+                var cachedBooks = _cache.GetString(cacheKey);
+                if (!string.IsNullOrEmpty(cachedBooks))
+                {
+                    Console.WriteLine("Data from Redis cache (recent books)");
+                    return JsonSerializer.Deserialize<List<Book>>(cachedBooks);
+                }
+
+               
+                var recentBooks = _context.Books
+                                          .OrderByDescending(b => b.CreatedAt)
+                                          .ToList();
+
+                Console.WriteLine("Data from DB (recent books)");
+
+              
+                if (recentBooks.Any())
+                {
+                    var cacheOptions = new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+                    };
+                    _cache.SetString(cacheKey, JsonSerializer.Serialize(recentBooks), cacheOptions);
+                }
+
+                return recentBooks;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error retrieving  recent books " + ex.Message);
+                throw new Exception("Error retrieving recent books: " + ex.Message, ex);
             }
         }
 
 
 
         public Book GetBookById(int id)
-{
-    try
-    {
-        var book = _context.Books.FirstOrDefault(b => b.Id == id);
-        if (book == null)
-            throw new KeyNotFoundException($"Book with ID {id} not found.");
-        return book;
-    }
-    catch (Exception ex)
-    {
-        throw new Exception("Error fetching book by ID.", ex);
-    }
-}
+        {
+            try
+            {
+                string cacheKey = $"book:{id}";
+
+              
+                var cachedBook = _cache.GetString(cacheKey);
+                if (!string.IsNullOrEmpty(cachedBook))
+                {
+                    Console.WriteLine("Data from Redis cache.");
+                    return JsonSerializer.Deserialize<Book>(cachedBook);
+                }
+
+             
+                var book = _context.Books.FirstOrDefault(b => b.Id == id);
+                if (book == null)
+                    throw new KeyNotFoundException($"Book with ID {id} not found.");
+
+                Console.WriteLine("Data from Database.");
+
+             
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+                };
+                _cache.SetString(cacheKey, JsonSerializer.Serialize(book), cacheOptions);
+
+                return book;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error fetching book by ID.", ex);
+            }
+        }
 
 
         public IEnumerable<Book> SearchBooks(string search)
@@ -266,35 +344,7 @@ namespace DataAccessLayer.Repository
         }
 
 
-        /*  public IEnumerable<Book> SearchBooksByAuthor(string author)
-          {
-              try
-              {
-                  return _context.Books
-                                 .Where(b => b.Author.ToLower().Contains(author.ToLower()))
-                                 .ToList();
-              }
-              catch (Exception ex)
-              {
-
-                  throw new Exception("Error fetching books by author from database.", ex);
-              }
-          }
-
-          public IEnumerable<Book> SearchBooksByTitle(string title)
-          {
-              try
-              {
-                  return _context.Books
-                                 .Where(b => b.BookName.ToLower().Contains(title.ToLower()))
-                                 .ToList();
-              }
-              catch (Exception ex)
-              {
-                  throw new Exception("Error fetching books by title from database.", ex);
-              }
-          }
-        */
+  
           public IEnumerable<Book> GetBooksSortedByPriceAsc()
           {
               try

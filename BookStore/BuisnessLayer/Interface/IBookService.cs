@@ -15,7 +15,7 @@ namespace BuisnessLayer.Interface
         public Book AddBook(BookModel model, string token);
         public Book UpdateBook(int id, BookModel model, string token);
         public string DeleteBook(int id, string token);
-        public List<Book> GetAllBooks();
+        public IEnumerable<Book> GetAllBooks();
         public PaginatedBooksResult GetAllBooksWithPage(int page);
         public IEnumerable<Book> GetAllRecentBooks();
         public Book GetBookById(int id);

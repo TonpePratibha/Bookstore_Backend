@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using AspNetCoreRateLimit;
+using StackExchange.Redis;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -85,6 +86,18 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 */
 
+
+//redis server
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis"))
+);
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379"; // Change if Redis is running on a different port or host
+    options.InstanceName = "FundooApp_";
+});
 
 // CORS Policy
 builder.Services.AddCors(options =>

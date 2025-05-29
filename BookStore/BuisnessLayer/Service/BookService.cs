@@ -29,7 +29,7 @@ namespace BuisnessLayer.Service
 
 
 
-        public List<Book> GetAllBooks()
+        public IEnumerable<Book> GetAllBooks()
         {
             return _bookRepository.GetAllBooks();
         }
