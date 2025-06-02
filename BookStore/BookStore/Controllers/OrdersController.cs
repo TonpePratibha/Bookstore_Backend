@@ -12,15 +12,18 @@ namespace BookStore.Controllers
     {
 
         public readonly IOrderService _orderService;
+        private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(IOrderService orderService)
+        public OrdersController(IOrderService orderService, ILogger<OrdersController> logger)
         {
             _orderService = orderService;
+            _logger = logger;
         }
-       [HttpPost("placeorder")]
+        [HttpPost("placeorder")]
         
         public IActionResult PlaceOrder()
         {
+            _logger.LogInformation("PlaceOrder API called.");
             try
             {
                 
@@ -28,6 +31,7 @@ namespace BookStore.Controllers
 
                 if (string.IsNullOrEmpty(token))
                 {
+                    _logger.LogWarning("Authorization token missing in PlaceOrder.");
                     return Unauthorized(new { message = "Authorization token is missing. Please provide a valid token." });
                 }
 
@@ -36,10 +40,11 @@ namespace BookStore.Controllers
 
                 if (orderResponse == null)
                 {
+                    _logger.LogWarning("PlaceOrder failed: No items in cart or user not found.");
                     return BadRequest(new { message = "Could not place the order. Possible reasons: no items in cart, or user not found." });
                 }
 
-               
+                _logger.LogInformation("Order placed successfully.");
                 return Ok(new
                 {
                     message = orderResponse.Message,
@@ -48,17 +53,17 @@ namespace BookStore.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-               
+                _logger.LogWarning(ex, "Unauthorized access in PlaceOrder.");
                 return Unauthorized(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                
+                _logger.LogWarning(ex, "Invalid operation during PlaceOrder.");
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-               
+                _logger.LogError(ex, "An unexpected error occurred in PlaceOrder.");
                 return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
@@ -68,12 +73,14 @@ namespace BookStore.Controllers
         [HttpGet]
         public IActionResult GetUserOrders()
         {
+            _logger.LogInformation("GetUserOrders API called.");
             try
             {
                 var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
                 if (string.IsNullOrEmpty(token))
                 {
+                    _logger.LogWarning("Authorization token missing in GetUserOrders.");
                     return BadRequest(new
                     {
                         Status = 400,
@@ -97,7 +104,7 @@ namespace BookStore.Controllers
                         Data = (object)null
                     });
                 }
-
+                _logger.LogInformation("Orders fetched successfully.");
                 return Ok(new
                 {
                     Status = 200,
@@ -108,6 +115,7 @@ namespace BookStore.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
+                _logger.LogWarning(ex, "Unauthorized access in GetUserOrders.");
                 // Handle case where the user is not authorized (i.e., not a user role)
                 return StatusCode(403,new
                 {
@@ -120,6 +128,7 @@ namespace BookStore.Controllers
             catch (Exception)
             {
                 // Handle general errors
+                _logger.LogError( "Error fetching user orders.");
                 return StatusCode(500, new
                 {
                     Status = 500,

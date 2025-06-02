@@ -4,6 +4,7 @@ using DataAccessLayer.Interface;
 using DataAccessLayer.JWT;
 using DataAccessLayer.Modal;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +19,13 @@ namespace DataAccessLayer.Repository
 
         private readonly ApplicationDbContext _context;
         private readonly JwtHelper _jwtHelper;
+        private readonly ILogger<CartRepository> _logger;
 
-        public CartRepository(ApplicationDbContext context, JwtHelper jwtHelper)
+        public CartRepository(ApplicationDbContext context, JwtHelper jwtHelper, ILogger<CartRepository> logger)
         {
             _context = context;
             _jwtHelper = jwtHelper;
+            _logger = logger;
         }
 
         
@@ -31,6 +34,7 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("AddToCart called for BookId: {BookId}", bookId);
                 if (string.IsNullOrEmpty(token))
                     return null;
 
@@ -56,6 +60,7 @@ namespace DataAccessLayer.Repository
                     existingCartItem.Quantity += 1;
                     existingCartItem.Price = (decimal)book.Price * existingCartItem.Quantity;
                     _context.Cart.Update(existingCartItem);
+                    _logger.LogInformation("Updated quantity for existing cart item.");
                 }
                 else
                 {
@@ -68,6 +73,7 @@ namespace DataAccessLayer.Repository
                         IsPurchased = false
                     };
                     _context.Cart.Add(newCart);
+                    _logger.LogInformation("Added new book to cart.");
                 }
 
                 _context.SaveChanges();
@@ -87,6 +93,7 @@ namespace DataAccessLayer.Repository
             }
             catch
             {
+                _logger.LogError( "Error occurred while adding to cart.");
                 return null;
             }
         }
@@ -102,6 +109,7 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("UpdateCartQuantity called for BookId: {BookId} with new quantity: {Quantity}", bookId, newQuantity);
                 var userId = _jwtHelper.ExtractUserIdFromJwt(token);
                 var role = _jwtHelper.ExtractRoleFromJwt(token);
 
@@ -118,6 +126,7 @@ namespace DataAccessLayer.Repository
                 // ❗Prevent quantity below 1
                 if (newQuantity < 1)
                 {
+                    _logger.LogWarning("Attempt to set quantity below 1 for BookId: {BookId}", bookId);
                     // Optionally: return current cart state instead of null
                     return new CartModel
                     {
@@ -153,6 +162,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while updating cart quantity.");
                 return null;
             }
         }
@@ -162,6 +172,7 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("DeleteFromCartIfQuantityZero called for BookId: {BookId}", bookId);
                 var role = _jwtHelper.ExtractRoleFromJwt(token);
                 var userId = _jwtHelper.ExtractUserIdFromJwt(token);
 
@@ -173,19 +184,17 @@ namespace DataAccessLayer.Repository
                 if (cartItem == null)
                     return "Cart item not found.";
 
-             /*   if (cartItem.Quantity != 0)
-                    return "Item quantity is not zero. Cannot delete.";
-             */ 
+            
 
                 _context.Cart.Remove(cartItem);
                 _context.SaveChanges();
-
+                _logger.LogInformation("Cart item deleted successfully.");
                 return "Cart item deleted successfully.";
             }
             
             catch (Exception ex)
             {
-            
+                _logger.LogError(ex, "Error occurred while deleting cart item.");
                 return $"An error occurred while deleting the cart item: {ex.Message}";
             }
         }
@@ -202,6 +211,7 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("GetCartDetails called.");
                 int userId = _jwtHelper.ExtractUserIdFromJwt(token);
                 string role = _jwtHelper.ExtractRoleFromJwt(token);
 
@@ -230,6 +240,9 @@ namespace DataAccessLayer.Repository
                     BookImage = c.Book.BookImage
                 }).ToList();
 
+
+                _logger.LogInformation("Cart fetched successfully for user: {UserId}", userId);
+
                 return new CartResponseModel
                 {
                     IsSuccess = true,
@@ -251,6 +264,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while getting cart details.");
                 return new CartResponseModel { IsSuccess = false, Message = $"Internal error: {ex.Message}" };
             }
         }

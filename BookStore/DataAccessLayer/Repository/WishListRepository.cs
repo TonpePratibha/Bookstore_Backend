@@ -4,6 +4,7 @@ using DataAccessLayer.Interface;
 using DataAccessLayer.JWT;
 using DataAccessLayer.Modal;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,13 +19,14 @@ namespace DataAccessLayer.Repository
 
         public readonly JwtHelper _jwtHelper;
         public ApplicationDbContext _context;
-        public WishListRepository(JwtHelper jwtHelper, ApplicationDbContext context)
+        private readonly ILogger<WishListRepository> _logger;
+        public WishListRepository(JwtHelper jwtHelper, ApplicationDbContext context, ILogger<WishListRepository> logger)
         {
 
 
             _jwtHelper = jwtHelper;
             _context = context;
-
+            _logger = logger;
 
         }
       
@@ -46,6 +48,7 @@ namespace DataAccessLayer.Repository
 
                 if (existing != null)
                 {
+                    _logger.LogWarning("User {UserId} tried to add book {BookId} already in wishlist.", userId, bookId);
                     throw new Exception("Book already present in wishlist.");
                 }
 
@@ -61,6 +64,7 @@ namespace DataAccessLayer.Repository
                 if (wishlist == null)
                     return null;
 
+                _logger.LogInformation("Book {BookId} added to wishlist for user {UserId}.", bookId, userId);
                 return new WishListModel
                 {
                     AddedBy = userId,
@@ -79,7 +83,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
-                // 👇 Throw the specific error upward so controller can handle it
+                _logger.LogError(ex, "Error while adding book {BookId} to wishlist.", bookId);
                 throw new Exception(ex.Message);
             }
         }
@@ -101,16 +105,16 @@ namespace DataAccessLayer.Repository
                 if (wishlistItem == null)
                     return "wishlist item not found.";
 
-                
-              //  _context.Wishlist.Remove(wishlistItem);
-              //  _context.SaveChanges();
 
+                //  _context.Wishlist.Remove(wishlistItem);
+                //  _context.SaveChanges();
+                _logger.LogInformation("Wishlist item deleted for user {UserId} and book {BookId}.", userId, bookId);
                 return "wishlist item deleted successfully.";
             }
 
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, "Error deleting wishlist item for user with book ID {BookId}.", bookId);
                 return $"An error occurred while deleting the wishlist item: {ex.Message}";
             }
 
@@ -172,7 +176,7 @@ namespace DataAccessLayer.Repository
                     Quantity = c.Quantity,
                     BookImage = c.BookImage
                 }).ToList();
-
+                _logger.LogInformation("Wishlist retrieved successfully for user {UserId}.", userId);
                 return new WishListResponseModel
                 {
                     IsSuccess = true,
@@ -193,6 +197,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error retrieving wishlist details.");
                 return new WishListResponseModel { IsSuccess = false, Message = $"Internal error: {ex.Message}" };
             }
         }

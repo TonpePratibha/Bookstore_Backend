@@ -41,6 +41,7 @@ builder.Services.AddScoped<ICustomerDetailsRepository, CustomerDetailsRepository
 builder.Services.AddScoped<ICustomerDetailsService, CustomerDetailsService>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<IRabitmqProducer, RabitmqProducer>();
 
 
 
@@ -60,7 +61,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<IPasswordHasher<Admin>, PasswordHasher<Admin>>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-
+builder.Services.AddHostedService<EmailConsumerservice>();
 
 builder.Services.AddScoped<JwtHelper>();
 
@@ -98,6 +99,9 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = "localhost:6379"; // Change if Redis is running on a different port or host
     options.InstanceName = "FundooApp_";
 });
+
+
+
 
 // CORS Policy
 builder.Services.AddCors(options =>

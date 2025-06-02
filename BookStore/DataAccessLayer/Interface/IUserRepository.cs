@@ -20,8 +20,9 @@ namespace DataAccessLayer.Interface
         public void SendResetPasswordEmail(string email);
         public string ResetPassword(string token, string newPassword);
         public RefreshLoginResponse AcesstokenLogin(UserLogin userLoginModel);
+        public void SendEmail(string toEmail, string subject, string body);
 
-        
+
 
         public RefreshLoginResponse RefreshAccessToken(string refreshToken);
     }

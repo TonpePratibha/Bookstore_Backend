@@ -13,6 +13,7 @@ using System.Net.Mail;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DataAccessLayer.Repository
 {
@@ -24,12 +25,14 @@ namespace DataAccessLayer.Repository
         private readonly PasswordHasher<Admin> _passwordHasher;
         private readonly JwtHelper _jwtHelper;
         private readonly IConfiguration _config;
-        public AdminRepository(ApplicationDbContext context, JwtHelper jwtHelper, IConfiguration configuration)
+        private readonly ILogger<AdminRepository> _logger;
+        public AdminRepository(ApplicationDbContext context, JwtHelper jwtHelper, IConfiguration configuration, ILogger<AdminRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _passwordHasher = new PasswordHasher<Admin>();
             _jwtHelper = jwtHelper ?? throw new ArgumentNullException(nameof(jwtHelper));
             _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public bool AdminExists(string email)
@@ -45,6 +48,7 @@ namespace DataAccessLayer.Repository
             {
                 if (AdminExists(adminModel.Email))
                 {
+                    _logger.LogWarning("RegisterAdmin failed: User already exists with email {Email}", adminModel.Email);
                     throw new Exception("User already exists with this email.");
                 }
 
@@ -59,7 +63,7 @@ namespace DataAccessLayer.Repository
                 admin.Password = _passwordHasher.HashPassword(admin, adminModel.Password);
                 _context.Admin.Add(admin);
                 _context.SaveChanges();
-
+                _logger.LogInformation("Admin registered successfully: {Email}", admin.Email);
                 return new AdminModel
                 {
                     FirstName = adminModel.FirstName,
@@ -69,7 +73,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
-                
+                _logger.LogError(ex, "Error in RegisterAdmin for {Email}", adminModel.Email);
                 throw new Exception("An error occurred while registering the admin.", ex);
             }
         }
@@ -81,9 +85,12 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("Validating admin with email {Email}", adminLoginModel.Email);
+
                 var admin = _context.Admin.FirstOrDefault(u => u.Email == adminLoginModel.Email);
                 if (admin == null)
                 {
+                    _logger.LogWarning("ValidateAdmin failed: No user found with email {Email}", adminLoginModel.Email);
                     return null;
                 }
 
@@ -91,6 +98,7 @@ namespace DataAccessLayer.Repository
 
                 if (result != PasswordVerificationResult.Success)
                 {
+                    _logger.LogWarning("ValidateAdmin failed: Invalid password for email {Email}", adminLoginModel.Email);
                     return null;
                 }
 
@@ -105,7 +113,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
-                
+                _logger.LogError(ex, "Error validating admin login for {Email}", adminLoginModel.Email);
                 return null; 
             }
         }
@@ -115,6 +123,7 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("Fetching admin by ID: {Id}", id);
                 var admin = _context.Admin.FirstOrDefault(u => u.Id == id);
                 if (admin == null) return null;
 
@@ -127,6 +136,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error retrieving admin with ID {Id}", id);
                 throw new Exception("Error retrieving admin.", ex);
             }
         }
@@ -135,9 +145,11 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("Updating admin with ID: {Id}", id);
                 var user = _context.Admin.FirstOrDefault(u => u.Id == id);
                 if (user == null)
                 {
+                    _logger.LogWarning("UpdateAdmin failed: Admin not found for ID {Id}", id);
                     throw new InvalidOperationException("User not found.");
                 }
 
@@ -146,9 +158,11 @@ namespace DataAccessLayer.Repository
                 user.Email = model.Email;
 
                 _context.SaveChanges();
+                _logger.LogInformation("Admin updated successfully: {Id}", id);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error updating admin with ID {Id}", id);
                 throw new Exception("Error updating admin.", ex);
             }
         }
@@ -160,6 +174,7 @@ namespace DataAccessLayer.Repository
                 var admin = _context.Admin.FirstOrDefault(u => u.Id == id);
                 if (admin == null)
                 {
+                    _logger.LogWarning("DeleteAdmin failed: Admin not found for ID {Id}", id);
                     return;
                 }
 
@@ -168,6 +183,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error deleting admin with ID {Id}", id);
                 throw new Exception("Error deleting admin.", ex);
             }
         }
@@ -176,9 +192,11 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("Sending reset password email to {Email}", email);
                 var admin = _context.Admin.FirstOrDefault(u => u.Email == email);
                 if (admin == null)
                 {
+                    _logger.LogWarning("SendResetPasswordEmail failed: User not found for email {Email}", email);
                     throw new InvalidOperationException("User not found.");
                 }
 
@@ -186,9 +204,11 @@ namespace DataAccessLayer.Repository
                 string resetLink = $"http://localhost:4200/reset/{token}";
 
                 SendEmail(admin.Email, "Password Reset", $"Click here to reset your password: {resetLink}");
+                _logger.LogInformation("Reset password email sent to {Email}", email);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error sending reset password email to {Email}", email);
                 throw new Exception("Error sending reset password email.", ex);
             }
         }
@@ -211,9 +231,11 @@ namespace DataAccessLayer.Repository
                     mailMessage.IsBodyHtml = true;
                     smtpClient.Send(mailMessage);
                 }
+                _logger.LogInformation("Email sent to {ToEmail} with subject {Subject}", toEmail, subject);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error sending email to {ToEmail}", toEmail);
                 throw new Exception("Error sending email.", ex);
             }
         }
@@ -230,22 +252,22 @@ namespace DataAccessLayer.Repository
         }
         catch (Exception ex)
         {
-
-            throw new Exception("Invalid token");
+                _logger.LogError(ex, "Invalid token in ResetPassword");
+                throw new Exception("Invalid token");
         }
 
         var user = _context.Admin.FirstOrDefault(u => u.Id == adminId);
         if (user == null)
         {
-
-            throw new Exception("User not found");
+                _logger.LogWarning("ResetPassword failed: User not found for token");
+                throw new Exception("User not found");
         }
 
         user.Password = _passwordHasher.HashPassword(user, newPassword);
         _context.SaveChanges();
 
-
-        return "Password reset successful";
+            _logger.LogInformation("Password reset successful for user ID: {UserId}", adminId);
+            return "Password reset successful";
     }
 
        
@@ -254,6 +276,7 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("Access login attempt for {Email}", adminLoginModel.Email);
                 var admin = _context.Admin.FirstOrDefault(u => u.Email == adminLoginModel.Email);
                 if (admin == null) return null;
 
@@ -277,6 +300,7 @@ namespace DataAccessLayer.Repository
 
                 _context.RoleBasedRefreshTokens.Add(tokenEntry);
                 _context.SaveChanges();
+                _logger.LogInformation("Access login successful for {Email}", admin.Email);
 
                 return new RefreshLoginResponse
                 {
@@ -288,7 +312,7 @@ namespace DataAccessLayer.Repository
             }
             catch (Exception ex)
             {
-                
+                _logger.LogError(ex, "Error in AccesstokenLogin for {Email}", adminLoginModel.Email);
                 Console.WriteLine($"Login error: {ex.Message}");
                 return null;
             }
@@ -298,6 +322,7 @@ namespace DataAccessLayer.Repository
         {
             try
             {
+                _logger.LogInformation("Refreshing access token with refresh token: {Token}", refreshToken);
                 var token = _context.RoleBasedRefreshTokens.FirstOrDefault(t =>
                     t.RefreshToken == refreshToken && t.RefreshTokenExpiry > DateTime.UtcNow);
 
@@ -310,7 +335,7 @@ namespace DataAccessLayer.Repository
                 token.AccessToken = newAccessToken;
                 token.AccessTokenExpiry = DateTime.UtcNow.AddMinutes(15);
                 _context.SaveChanges();
-
+                _logger.LogInformation("Access token refreshed for admin ID: {AdminId}", admin.Id);
                 return new RefreshLoginResponse
                 {
                     Token = newAccessToken,
@@ -323,6 +348,7 @@ namespace DataAccessLayer.Repository
             {
                 
                 Console.WriteLine($"Token refresh error: {ex.Message}");
+                _logger.LogError(ex, "Error in RefreshAccessToken for token {Token}", refreshToken);
                 return null;
             }
         }
