@@ -17,7 +17,27 @@ using AspNetCoreRateLimit;
 using StackExchange.Redis;
 
 
-var builder = WebApplication.CreateBuilder(args);
+
+using NLog;
+using NLog.Web;
+
+var logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+NLog.GlobalDiagnosticsContext.Set("LogDirectory", logPath);
+
+var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+
+try
+{
+    logger.Debug("Application starting...");
+
+    var builder = WebApplication.CreateBuilder(args);
+  
+    // Setup NLog as logging provider
+    builder.Logging.ClearProviders();
+    builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+    builder.Host.UseNLog();
+
+    
 
 // Database context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -196,3 +216,13 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+}
+catch (Exception ex)
+{
+    logger.Error(ex, "Application stopped due to an exception.");
+    throw;
+}
+finally
+{
+    LogManager.Shutdown(); // Ensure to flush and close logs
+}
